@@ -1,0 +1,51 @@
+/**** Start of imports. If edited, may not auto-convert in the playground. ****/
+var image = ee.Image("users/manavgupta/raster_labels_15"),
+    image2 = ee.Image("users/manavgupta/raser_labels_15_30"),
+    image3 = ee.Image("users/manavgupta/raster_labels_30-45"),
+    image4 = ee.Image("users/manavgupta/raster_labels_45_60"),
+    image5 = ee.Image("users/manavgupta/raster_labels_60_75"),
+    image6 = ee.Image("users/manavgupta/raster_labels_75-90"),
+    image7 = ee.Image("users/manavgupta/raster_labels_90-105"),
+    image8 = ee.Image("users/manavgupta/raster_labels_105-120"),
+    image9 = ee.Image("users/manavgupta/raster_labels_120_135"),
+    image10 = ee.Image("users/manavgupta/raster_labels_135_150"),
+    image11 = ee.Image("users/manavgupta/raster_labels_150_165"),
+    image12 = ee.Image("users/manavgupta/raster_labels_165_173");
+/***** End of imports. If edited, may not auto-convert in the playground. *****/
+
+var collectionFromImages = ee.ImageCollection(
+  [image, image2, image3, image4, image5, image6, image7, image8, image9, image10, image11, image12]);
+
+var mosaic = collectionFromImages.mosaic();
+
+Map.addLayer(mosaic, {}, 'Mosaic Image');
+
+
+// Define the FAO GAUL state code and country code
+var stateCode = '70073';
+var countryCode = '115';
+
+// Load the FAO GAUL feature collection
+var gaulFeatures = ee.FeatureCollection('FAO/GAUL/2015/level1');
+
+// Filter the features based on the state code and country code
+var filteredFeatures = gaulFeatures
+  .filter(ee.Filter.eq('ADM1_CODE', 70073));
+
+// Get the geometry of the filtered features
+var geometry = filteredFeatures.geometry();
+
+// Clip the mosaic image to the specified geometry
+var clippedMosaic = mosaic.clip(geometry);
+
+// Display the clipped mosaic on the map
+Map.addLayer(clippedMosaic, {}, 'Clipped Mosaic');
+
+// Create a mask for non-field pixels
+var nonFieldMask = clippedMosaic.eq(0);
+
+// Set non-field pixels to white (255)
+var finalImage = clippedMosaic.where(nonFieldMask, 255);
+
+// Display the final image
+Map.addLayer(finalImage, {}, 'Final Image');
