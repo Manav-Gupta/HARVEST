@@ -1,0 +1,19 @@
+/**** Start of imports. If edited, may not auto-convert in the playground. ****/
+var image = ee.Image("users/manavgupta/field_ids_1_20"),
+    image2 = ee.Image("users/manavgupta/field_ids_20_40"),
+    image3 = ee.Image("users/manavgupta/field_ids_40_60"),
+    image4 = ee.Image("users/manavgupta/field_ids_60_80"),
+    image6 = ee.Image("users/manavgupta/field_ids_100_120"),
+    image7 = ee.Image("users/manavgupta/field_ids_120_140"),
+    image8 = ee.Image("users/manavgupta/field_ids_140_160"),
+    image9 = ee.Image("users/manavgupta/field_ids_160_173"),
+    image5 = ee.Image("users/manavgupta/field_ids_80_1001");
+/***** End of imports. If edited, may not auto-convert in the playground. *****/
+
+
+var collectionFromImages = ee.ImageCollection(
+  [image, image2, image3, image4, image5, image6, image7, image8, image9]);
+
+var mosaic1 = collectionFromImages.mosaic();
+
+Map.addLayer(mosaic1, {}, 'Mosaic Image');
