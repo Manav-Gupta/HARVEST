@@ -21,7 +21,9 @@ var s2 = ee.ImageCollection("COPERNICUS/S2_SR_HARMONIZED"),
     image19 = ee.Image("users/manavgupta/raster_labels_45_60"),
     image20 = ee.Image("users/manavgupta/raster_labels_60_75"),
     image21 = ee.Image("users/manavgupta/raster_labels_75-90"),
-    image22 = ee.Image("users/manavgupta/raster_labels_90-105");
+    image22 = ee.Image("users/manavgupta/raster_labels_90-105"),
+    table = ee.FeatureCollection("projects/ee-manavgupta/assets/polygon_coordinates4"),
+    table2 = ee.FeatureCollection("projects/ee-manavgupta/assets/coord");
 /***** End of imports. If edited, may not auto-convert in the playground. *****/
 
 var collectionFieldId = ee.ImageCollection(
@@ -82,3 +84,12 @@ Map.addLayer(clippedRasterLabelMosaic, {}, 'Raster Label Mosaic');
 
 // Display the final image
 //Map.addLayer(finalImage, {}, 'Final Image');
+
+var abc = ee.FeatureCollection(table2);
+
+Map.addLayer(abc.draw({color: 'ff0000', pointRadius: 5}), {}, 'abc');
+
+var region = ee.Geometry.Polygon(
+  [[[87.892603, 25.643258], [87.892431, 25.620144], [87.917927, 25.619986], [87.918104, 25.6431], [87.904457, 25.643186], [87.904455, 25.642915], [87.904554, 25.642914], [87.904552, 25.642553], [87.904253, 25.642555], [87.904256, 25.642916], [87.904156, 25.642917], [87.904158, 25.643187], [87.892603, 25.643258]]]);
+
+Map.addLayer(region, {min: 1000, max: 2000}, 'SRTM');
