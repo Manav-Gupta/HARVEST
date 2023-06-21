@@ -1,0 +1,13 @@
+/**** Start of imports. If edited, may not auto-convert in the playground. ****/
+var table = ee.FeatureCollection("projects/ee-manavgupta/assets/coord"),
+    table2 = ee.FeatureCollection("projects/ee-manavgupta/assets/polygon_coordinates4");
+/***** End of imports. If edited, may not auto-convert in the playground. *****/
+
+//var abc = ee.FeatureCollection(table2);
+
+//Map.addLayer(abc.draw({color: 'ff0000', pointRadius: 5}), {}, 'abc');
+
+var region = ee.Geometry.Polygon(
+  [[[87.86794, 25.758986], [87.867772, 25.735871], [87.893293, 25.735717], [87.893465, 25.758831], [87.883894, 25.75889], [87.883891, 25.758529], [87.883392, 25.758532], [87.883395, 25.758893], [87.86794, 25.758986]]]);
+
+Map.addLayer(region, {min: 1000, max: 2000}, 'SRTM');
