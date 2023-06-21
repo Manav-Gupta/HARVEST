@@ -1,11 +1,34 @@
+/**** Start of imports. If edited, may not auto-convert in the playground. ****/
+var s2 = ee.ImageCollection("COPERNICUS/S2_SR_HARMONIZED"),
+    image = ee.Image("users/manavgupta/field_ids_100_120"),
+    image2 = ee.Image("users/manavgupta/field_ids_120_140"),
+    image3 = ee.Image("users/manavgupta/field_ids_140_160"),
+    image4 = ee.Image("users/manavgupta/field_ids_160_173"),
+    image5 = ee.Image("users/manavgupta/field_ids_1_20"),
+    image6 = ee.Image("users/manavgupta/field_ids_20_40"),
+    image7 = ee.Image("users/manavgupta/field_ids_40_60"),
+    image8 = ee.Image("users/manavgupta/field_ids_60_80"),
+    image9 = ee.Image("users/manavgupta/field_ids_80_1001"),
+    image10 = ee.Image("users/manavgupta/raser_labels_15_30"),
+    image11 = ee.Image("users/manavgupta/raster_labels_1"),
+    image12 = ee.Image("users/manavgupta/raster_labels_105-120"),
+    image13 = ee.Image("users/manavgupta/raster_labels_120_135"),
+    image14 = ee.Image("users/manavgupta/raster_labels_135_150"),
+    image15 = ee.Image("users/manavgupta/raster_labels_15"),
+    image16 = ee.Image("users/manavgupta/raster_labels_150_165"),
+    image17 = ee.Image("users/manavgupta/raster_labels_165_173"),
+    image18 = ee.Image("users/manavgupta/raster_labels_30-45"),
+    image19 = ee.Image("users/manavgupta/raster_labels_45_60"),
+    image20 = ee.Image("users/manavgupta/raster_labels_60_75"),
+    image21 = ee.Image("users/manavgupta/raster_labels_75-90"),
+    image22 = ee.Image("users/manavgupta/raster_labels_90-105");
+/***** End of imports. If edited, may not auto-convert in the playground. *****/
 
-var collectionFromImages = ee.ImageCollection(
-  [image, image2, image3, image4, image5, image6, image7, image8, image9, image10, image11, image12]);
+var collectionFieldId = ee.ImageCollection(
+  [image, image2, image3, image4, image5, image6, image7, image8, image9]);
 
-var mosaic = collectionFromImages.mosaic();
-
-Map.addLayer(mosaic, {}, 'Mosaic Image');
-
+var collectionRasterLabel = ee.ImageCollection(
+  [image10, image11, image12, image13, image14, image15, image16, image17, image18, image19, image20, image21, image22]);
 
 // Define the FAO GAUL state code and country code
 var stateCode = '70073';
@@ -17,21 +40,45 @@ var gaulFeatures = ee.FeatureCollection('FAO/GAUL/2015/level1');
 // Filter the features based on the state code and country code
 var filteredFeatures = gaulFeatures
   .filter(ee.Filter.eq('ADM1_CODE', 70073));
-
+  
 // Get the geometry of the filtered features
-var geometry = filteredFeatures.geometry();
+var geometry = filteredFeatures.geometry();  
 
+var fieldIdMosaic = collectionFieldId.mosaic();
+var clippedFieldIdMosaic = fieldIdMosaic.clip(geometry);
+
+var rasterLabelMosaic = collectionRasterLabel.mosaic();
+var clippedRasterLabelMosaic = rasterLabelMosaic.clip(geometry);
+
+//Map.addLayer(mosaic, {}, 'Mosaic Image');
+var rgbVis = {
+  min: 0.0,
+  max: 3000,
+  bands: ['B4', 'B3', 'B2'],
+};
+
+
+
+var filtered = s2.filter(ee.Filter.lt('CLOUDY_PIXEL_PERCENTAGE', 10))
+  .filter(ee.Filter.date('2022-01-01', '2022-05-31'))
+  .filter(ee.Filter.bounds(geometry));
+
+var sentinelMosaic = filtered.mosaic();
+var sentinelComposite = filtered.median();
+
+Map.addLayer(sentinelComposite, rgbVis, 'Sentinel Median Composite');
+Map.addLayer(sentinelMosaic, rgbVis, 'Sentinel Mosaic');
 // Clip the mosaic image to the specified geometry
-var clippedMosaic = mosaic.clip(geometry);
+//var clippedMosaic = mosaic.clip(geometry);
 
 // Display the clipped mosaic on the map
-Map.addLayer(clippedMosaic, {}, 'Clipped Mosaic');
-
+Map.addLayer(clippedFieldIdMosaic, {}, 'Field Id Mosaic');
+Map.addLayer(clippedRasterLabelMosaic, {}, 'Raster Label Mosaic');
 // Create a mask for non-field pixels
-var nonFieldMask = clippedMosaic.eq(0);
+//var nonFieldMask = clippedMosaic.eq(0);
 
 // Set non-field pixels to white (255)
-var finalImage = clippedMosaic.where(nonFieldMask, 255);
+//var finalImage = clippedMosaic.where(nonFieldMask, 255);
 
 // Display the final image
-Map.addLayer(finalImage, {}, 'Final Image');
+//Map.addLayer(finalImage, {}, 'Final Image');
