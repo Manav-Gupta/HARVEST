@@ -22,9 +22,7 @@ var s2 = ee.ImageCollection("COPERNICUS/S2_SR_HARMONIZED"),
     image20 = ee.Image("users/manavgupta/raster_labels_60_75"),
     image21 = ee.Image("users/manavgupta/raster_labels_75-90"),
     image22 = ee.Image("users/manavgupta/raster_labels_90-105"),
-    table = ee.FeatureCollection("projects/ee-manavgupta/assets/polygon_coordinates4"),
-    table2 = ee.FeatureCollection("projects/ee-manavgupta/assets/coord"),
-    table3 = ee.FeatureCollection("projects/ee-manavgupta/assets/new_poly_coord");
+    table = ee.FeatureCollection("projects/ee-manavgupta/assets/fixednew");
 /***** End of imports. If edited, may not auto-convert in the playground. *****/
 
 var collectionFieldId = ee.ImageCollection(
@@ -86,7 +84,7 @@ Map.addLayer(clippedRasterLabelMosaic, {}, 'Raster Label Mosaic');
 // Display the final image
 //Map.addLayer(finalImage, {}, 'Final Image');
 
-var abc = ee.FeatureCollection(table3);
+var abc = ee.FeatureCollection(table);
 
 Map.addLayer(abc.draw({color: 'ff0000', pointRadius: 5}), {}, 'abc');
 
@@ -119,7 +117,9 @@ var region11 = ee.Geometry.Polygon([[[87.433566, 25.645343], [87.459069, 25.6452
 
 var region12 = ee.Geometry.Polygon([[[87.868108, 25.7821], [87.86794, 25.758986], [87.883395, 25.758893], [87.883396, 25.759073], [87.883596, 25.759072], [87.883595, 25.758982], [87.883695, 25.758981], [87.883694, 25.758891], [87.893465, 25.758831], [87.893639, 25.781946], [87.868108, 25.7821]]]);
 
-var region13 = ee.Geometry.Polygon([[[87.867437, 25.689642], [87.86727, 25.666527], [87.87524, 25.666479], [87.875242, 25.66675], [87.875541, 25.666748], [87.87554, 25.666568], [87.875639, 25.666567], [87.875639, 25.666477], [87.892775, 25.666373], [87.892947, 25.689488], [87.867437, 25.689642]]]);
+var region13 = ee.Geometry.Polygon([[[87.875242, 25.66675], [87.87524, 25.666479], [87.875639, 25.666477], [87.875639, 25.666567], [87.87554, 25.666568], [87.875541, 25.666748], [87.875242, 25.66675]]]);
+
+var region14 = ee.Geometry.Polygon([[[87.904158, 25.643187], [87.904156, 25.642917], [87.904256, 25.642916], [87.904253, 25.642555], [87.904552, 25.642553], [87.904554, 25.642914], [87.904455, 25.642915], [87.904457, 25.643186], [87.904158, 25.643187]]]);
 
 Map.addLayer(region, {min: 1000, max: 2000}, 'SRTM');
 Map.addLayer(region1,{min: 1000, max: 2000}, 'SRTM1');
@@ -135,3 +135,4 @@ Map.addLayer(region10,{min: 1000, max: 2000}, 'SRTM10');
 Map.addLayer(region11,{min: 1000, max: 2000}, 'SRTM11');
 Map.addLayer(region12,{min: 1000, max: 2000}, 'SRTM12');
 Map.addLayer(region13,{min: 1000, max: 2000}, 'SRTM13');
+Map.addLayer(region14,{min: 1000, max: 2000}, 'SRTM14');
