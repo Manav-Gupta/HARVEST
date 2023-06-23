@@ -22,3 +22,5 @@ var sentinelComposite = filtered.median();
 
 Map.addLayer(sentinelComposite, rgbVis, 'Sentinel Median Composite');
 Map.addLayer(sentinelMosaic, rgbVis, 'Sentinel Mosaic');
+
+[[-180.000015, 90.000052], [-180.000015, 84.112853], [-179.999925, 84.112853], [-179.999925, 90.000052], [-180.000015, 90.000052]]
