@@ -22,7 +22,10 @@ var s2 = ee.ImageCollection("COPERNICUS/S2_SR_HARMONIZED"),
     image20 = ee.Image("users/manavgupta/raster_labels_60_75"),
     image21 = ee.Image("users/manavgupta/raster_labels_75-90"),
     image22 = ee.Image("users/manavgupta/raster_labels_90-105"),
-    table = ee.FeatureCollection("projects/ee-manavgupta/assets/final_points");
+    table = ee.FeatureCollection("projects/ee-manavgupta/assets/final_points"),
+    table2 = ee.FeatureCollection("projects/ee-manavgupta/assets/polygon1"),
+    table3 = ee.FeatureCollection("projects/ee-manavgupta/assets/polygon2"),
+    table4 = ee.FeatureCollection("projects/ee-manavgupta/assets/multiple_polygons");
 /***** End of imports. If edited, may not auto-convert in the playground. *****/
 
 var collectionFieldId = ee.ImageCollection(
@@ -61,7 +64,7 @@ var rgbVis = {
 
 
 var filtered = s2.filter(ee.Filter.lt('CLOUDY_PIXEL_PERCENTAGE', 10))
-  .filter(ee.Filter.date('2022-01-01', '2022-05-31'))
+  .filter(ee.Filter.date('2022-01-01', '2022-02-07'))
   .filter(ee.Filter.bounds(geometry));
 
 var sentinelMosaic = filtered.mosaic();
@@ -87,6 +90,8 @@ Map.addLayer(clippedRasterLabelMosaic, {}, 'Raster Label Mosaic');
 var abc = ee.FeatureCollection(table);
 
 Map.addLayer(abc.draw({color: 'ff0000', pointRadius: 1}), {}, 'abc');
+var poly1 = ee.FeatureCollection(table4);
+Map.addLayer(poly1.draw({color: 'black', pointRadius: 1}), {}, 'poly1');
 
 //var region = ee.Geometry.Polygon([[[87.459246, 25.691498], [87.459158, 25.668381], [87.470118, 25.668347], [87.470119, 25.668527], [87.470418, 25.668526], [87.470418, 25.668436], [87.470816, 25.668435], [87.470816, 25.668344], [87.484666, 25.668299], [87.484759, 25.691416], [87.459246, 25.691498]]]);
 
