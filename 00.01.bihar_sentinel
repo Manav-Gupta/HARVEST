@@ -28,10 +28,10 @@ var s2 = ee.ImageCollection("COPERNICUS/S2_SR_HARMONIZED"),
     table4 = ee.FeatureCollection("projects/ee-manavgupta/assets/multiple_polygons");
 /***** End of imports. If edited, may not auto-convert in the playground. *****/
 
-var collectionFieldId = ee.ImageCollection(
+var collectionRasterLabel = ee.ImageCollection(
   [image, image2, image3, image4, image5, image6, image7, image8, image9]);
 
-var collectionRasterLabel = ee.ImageCollection(
+var collectionFieldId = ee.ImageCollection(
   [image10, image11, image12, image13, image14, image15, image16, image17, image18, image19, image20, image21, image22]);
 
 // Define the FAO GAUL state code and country code
@@ -64,20 +64,20 @@ var rgbVis = {
 
 
 var filtered = s2.filter(ee.Filter.lt('CLOUDY_PIXEL_PERCENTAGE', 10))
-  .filter(ee.Filter.date('2022-01-01', '2022-02-07'))
+  .filter(ee.Filter.date('2022-01-01', '2022-05-31'))
   .filter(ee.Filter.bounds(geometry));
 
 var sentinelMosaic = filtered.mosaic();
 var sentinelComposite = filtered.median();
 
-Map.addLayer(sentinelComposite, rgbVis, 'Sentinel Median Composite');
-Map.addLayer(sentinelMosaic, rgbVis, 'Sentinel Mosaic');
+//Map.addLayer(sentinelComposite, rgbVis, 'Sentinel Median Composite');
+//Map.addLayer(sentinelMosaic, rgbVis, 'Sentinel Mosaic');
 // Clip the mosaic image to the specified geometry
 //var clippedMosaic = mosaic.clip(geometry);
 
 // Display the clipped mosaic on the map
-Map.addLayer(clippedFieldIdMosaic, {}, 'Field Id Mosaic');
-Map.addLayer(clippedRasterLabelMosaic, {}, 'Raster Label Mosaic');
+//Map.addLayer(clippedFieldIdMosaic, {}, 'Field Id Mosaic');
+//Map.addLayer(clippedRasterLabelMosaic, {}, 'Raster Label Mosaic');
 // Create a mask for non-field pixels
 //var nonFieldMask = clippedMosaic.eq(0);
 
@@ -89,55 +89,65 @@ Map.addLayer(clippedRasterLabelMosaic, {}, 'Raster Label Mosaic');
 
 var abc = ee.FeatureCollection(table);
 
-Map.addLayer(abc.draw({color: 'ff0000', pointRadius: 1}), {}, 'abc');
+//Map.addLayer(abc.draw({color: 'ff0000', pointRadius: 1}), {}, 'abc');
 var poly1 = ee.FeatureCollection(table4);
-Map.addLayer(poly1.draw({color: 'black', pointRadius: 1}), {}, 'poly1');
+//Map.addLayer(poly1.draw({color: 'black', pointRadius: 1}), {}, 'poly1');
 
 //var region = ee.Geometry.Polygon([[[87.459246, 25.691498], [87.459158, 25.668381], [87.470118, 25.668347], [87.470119, 25.668527], [87.470418, 25.668526], [87.470418, 25.668436], [87.470816, 25.668435], [87.470816, 25.668344], [87.484666, 25.668299], [87.484759, 25.691416], [87.459246, 25.691498]]]);
-
-//var region1 = ee.Geometry.Polygon([[[87.816731, 25.736166], [87.816573, 25.713051], [87.842089, 25.712906], [87.842252, 25.736021], [87.816731, 25.736166]]]);
-
-//var region2 = ee.Geometry.Polygon([[[87.739882, 25.690345], [87.739739, 25.667229], [87.744821, 25.667203], [87.744822, 25.667384], [87.744921, 25.667383], [87.744922, 25.667564], [87.745122, 25.667563], [87.745121, 25.667473], [87.745221, 25.667472], [87.745219, 25.667201], [87.765246, 25.667098], [87.765393, 25.690213], [87.739882, 25.690345]]]);
-
-//var region3 = ee.Geometry.Polygon([[[87.789992, 25.551384], [87.78984, 25.528269], [87.803474, 25.528194], [87.803475, 25.528285], [87.803674, 25.528284], [87.803674, 25.528193], [87.815317, 25.528129], [87.815473, 25.551245], [87.789992, 25.551384]]]);
-
-//var region4 = ee.Geometry.Polygon([[[87.636126, 25.367195], [87.636005, 25.344078], [87.648525, 25.344024], [87.648526, 25.344114], [87.648625, 25.344114], [87.648626, 25.344204], [87.648924, 25.344203], [87.648923, 25.344112], [87.649122, 25.344112], [87.649122, 25.344021], [87.661444, 25.343966], [87.661569, 25.367083], [87.636126, 25.367195]]]);
-
-//var region5 = ee.Geometry.Polygon([[[87.763052, 25.320358], [87.762908, 25.297241], [87.769463, 25.297207], [87.769464, 25.297297], [87.769563, 25.297297], [87.769564, 25.297387], [87.770359, 25.297383], [87.770357, 25.297202], [87.788336, 25.297107], [87.788486, 25.320224], [87.763052, 25.320358]]]);
-
-//var region6 = ee.Geometry.Polygon([[[87.712592, 25.389962], [87.712456, 25.366846], [87.733526, 25.366742], [87.733527, 25.366833], [87.733825, 25.366831], [87.733825, 25.366741], [87.7379, 25.36672], [87.73804, 25.389837], [87.732473, 25.389865], [87.732472, 25.389594], [87.732372, 25.389594], [87.732372, 25.389504], [87.732272, 25.389505], [87.732273, 25.389595], [87.732074, 25.389596], [87.732075, 25.389686], [87.731975, 25.389687], [87.731976, 25.389777], [87.731876, 25.389777], [87.731877, 25.389868], [87.729889, 25.389878], [87.729887, 25.389607], [87.729788, 25.389607], [87.729787, 25.389517], [87.729688, 25.389517], [87.729688, 25.389608], [87.72939, 25.389609], [87.729391, 25.389699], [87.729291, 25.3897], [87.729292, 25.389881], [87.712592, 25.389962]]]);
-
-//var region7 = ee.Geometry.Polygon([[[87.331234, 25.530023], [87.33117, 25.506905], [87.338633, 25.506888], [87.338634, 25.507159], [87.338933, 25.507159], [87.338933, 25.507249], [87.339032, 25.507249], [87.339032, 25.507068], [87.339131, 25.507068], [87.339131, 25.506887], [87.356645, 25.506846], [87.356713, 25.529963], [87.331234, 25.530023]]]);
-
-//var region8 = ee.Geometry.Polygon([[[87.305931, 25.599431], [87.305872, 25.576313], [87.329071, 25.576263], [87.329071, 25.576353], [87.328971, 25.576354], [87.328972, 25.576715], [87.329072, 25.576715], [87.329072, 25.576805], [87.329271, 25.576804], [87.329271, 25.576714], [87.32947, 25.576714], [87.329469, 25.576262], [87.331361, 25.576258], [87.331425, 25.599375], [87.324752, 25.59939], [87.324752, 25.59921], [87.324851, 25.599209], [87.324851, 25.599119], [87.324752, 25.599119], [87.324751, 25.599029], [87.324453, 25.59903], [87.324453, 25.59912], [87.324353, 25.59912], [87.324354, 25.599391], [87.305931, 25.599431]]]);
-
-//var region9 = ee.Geometry.Polygon([[[87.356918, 25.599315], [87.35685, 25.576198], [87.382339, 25.576134], [87.382412, 25.599251], [87.356918, 25.599315]]]);
-
-//var region10 = ee.Geometry.Polygon([[[87.433399, 25.599109], [87.433316, 25.575992], [87.444467, 25.575958],
-//[87.444468, 25.576229], [87.444568, 25.576229], [87.444569, 25.57668], [87.444669, 25.57668], [87.444669, 25.57677], 
-//[87.444968, 25.576769], [87.444967, 25.576589], [87.444868, 25.576589], [87.444867, 25.576408], [87.444768, 25.576409], [87.444766, 25.575957], [87.458805, 25.575914], [87.458893, 25.599031], 
-//[87.433399, 25.599109]]]);
-
-//var region11 = ee.Geometry.Polygon([[[87.433566, 25.645343], [87.459069, 25.645265], [87.458981, 25.622148], [87.445833, 25.622188], [87.445834, 25.622459], [87.445735, 25.62246], [87.445735, 25.62264], [87.445636, 25.622641], [87.445636, 25.622731], [87.445238, 25.622732], [87.445236, 25.62219], [87.433483, 25.622226], [87.43352, 25.63252], [87.434018, 25.632518], [87.434019, 25.63297], [87.433721, 25.632971], [87.433721, 25.633061], [87.433522, 25.633062], [87.433529, 25.635048], [87.433629, 25.635048], [87.433627, 25.634597], [87.433726, 25.634596], [87.433726, 25.634506], [87.433826, 25.634506], [87.433825, 25.634415], [87.433925, 25.634415], [87.433925, 25.634505], [87.434224, 25.634504], [87.434225, 25.634595], [87.434324, 25.634594], [87.434325, 25.634865], [87.434226, 25.634866], [87.434227, 25.635317], [87.43353, 25.635319], [87.433566, 25.645343]]]);
-
-//var region12 = ee.Geometry.Polygon([[[87.868108, 25.7821], [87.86794, 25.758986], [87.883395, 25.758893], [87.883396, 25.759073], [87.883596, 25.759072], [87.883595, 25.758982], [87.883695, 25.758981], [87.883694, 25.758891], [87.893465, 25.758831], [87.893639, 25.781946], [87.868108, 25.7821]]]);
-
-//var region13 = ee.Geometry.Polygon([[[87.867437, 25.689642], [87.86727, 25.666527], [87.87524, 25.666479], [87.875242, 25.66675], [87.875541, 25.666748], [87.87554, 25.666568], [87.875639, 25.666567], [87.875639, 25.666477], [87.892775, 25.666373], [87.892947, 25.689488], [87.867437, 25.689642]]]);
-
-//var region14 = ee.Geometry.Polygon([[[87.68846, 25.621247], [87.688328, 25.598131], [87.71382, 25.598009], [87.713957, 25.621125], [87.690154, 25.621239], [87.690153, 25.621149], [87.690253, 25.621148], [87.690251, 25.620877], [87.690152, 25.620878], [87.690151, 25.620787], [87.689952, 25.620788], [87.689951, 25.620698], [87.689653, 25.620699], [87.689653, 25.62079], [87.689553, 25.62079], [87.689556, 25.621151], [87.689655, 25.621151], [87.689656, 25.621241], [87.68846, 25.621247]]]);
-
-//Map.addLayer(region, {min: 1000, max: 2000}, 'SRTM');
-//Map.addLayer(region1,{min: 1000, max: 2000}, 'SRTM1');
-//Map.addLayer(region2,{min: 1000, max: 2000}, 'SRTM2');
-//Map.addLayer(region3,{min: 1000, max: 2000}, 'SRTM3');
-//Map.addLayer(region4,{min: 1000, max: 2000}, 'SRTM4');
-//Map.addLayer(region5,{min: 1000, max: 2000}, 'SRTM5');
-//Map.addLayer(region6,{min: 1000, max: 2000}, 'SRTM6');
-//Map.addLayer(region7,{min: 1000, max: 2000}, 'SRTM7');
-//Map.addLayer(region8,{min: 1000, max: 2000}, 'SRTM8');
-//Map.addLayer(region9,{min: 1000, max: 2000}, 'SRTM9');
-//Map.addLayer(region10,{min: 1000, max: 2000}, 'SRTM10');
-//Map.addLayer(region11,{min: 1000, max: 2000}, 'SRTM11');
-//Map.addLayer(region12,{min: 1000, max: 2000}, 'SRTM12');
-//Map.addLayer(region13,{min: 1000, max: 2000}, 'SRTM13');
 //Map.addLayer(region14,{min: 1000, max: 2000}, 'SRTM14');
+
+var cropLabelImage = clippedFieldIdMosaic.first(0);
+var fieldIDImage = clippedRasterLabelMosaic.first(0);
+
+var cropLabel = cropLabelImage.select('b1').rename('CropLabel');
+var fieldID = fieldIDImage.select('b1').rename('FieldID');
+
+var clippedImage = sentinelMosaic.clip(poly1);
+
+var triplets = clippedImage.addBands(fieldID).addBands(cropLabel);
+print(triplets);
+//Map.addLayer(triplets,{},'triplets');
+//Map.addLayer(clippedImage, {bands: ['B4', 'B3', 'B2'], min: 0, max: 3000}, 'Sentinel Mosaic');
+var combinedLayer = clippedImage.addBands(triplets);
+Map.addLayer(combinedLayer, {bands: ['B4', 'B3', 'B2'], min: 0, max: 3000}, 'Combined Layer');
+
+// Define a region of interest for sampling
+var sampleRegion = ee.Geometry.Point(87.21936, 25.49852);  // Specify the coordinates of the sample point
+
+// Sample the values of field ID and crop label at the sample point
+var sample = combinedLayer.sampleRegions({
+  collection: sampleRegion,
+  scale: 10,
+  geometries: true
+});
+
+// Get the first feature from the sample
+var firstFeature = sample.first();
+
+// Get the field ID and crop label values from the feature
+var fieldIDValue = firstFeature.get('FieldID');
+var cropLabelValue = firstFeature.get('CropLabel');
+
+// Print the field ID and crop label values
+//print('Field ID:', fieldIDValue);
+//print('Crop Label:', cropLabelValue);
+
+var featureCollection = combinedLayer.reduceToVectors({
+  reducer: ee.Reducer.mean(),
+  geometry: poly1,
+  scale: 10,
+});
+
+//Map.addLayer(featureCollection, {bands: ['B4', 'B3', 'B2'], min: 0, max: 3000}, 'features');
+Export.table.toAsset({
+  collection: featureCollection,
+  description: 'combined_layer_asset',
+  assetId: 'projects/ee-manavgupta/assets/combined_Bihar',
+});
+
+Export.table.toDrive({
+  collection: featureCollection,
+  description: 'combined_Bihar',
+  folder: 'NASA Harvest',
+  fileFormat: 'CSV',  // or 'GeoJSON', 'KML', 'TFRecord', etc.
+});
