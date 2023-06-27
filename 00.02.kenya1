@@ -14,6 +14,9 @@ var s2 = ee.ImageCollection("COPERNICUS/S2_SR"),
     image12 = ee.Image("projects/ee-manavgupta/assets/Kenya/kenya12");
 /***** End of imports. If edited, may not auto-convert in the playground. *****/
 
+var collectionKenya = ee.ImageCollection(
+  [image, image2, image3, image4, image5, image6, image7, image8, image9, image10, image11, image12]);
+  
 var countryCode = '133';
 var gaulFeatures = ee.FeatureCollection('FAO/GAUL/2015/level1');
 var filteredFeatures = gaulFeatures
@@ -29,10 +32,12 @@ var filtered = s2.filter(ee.Filter.lt('CLOUDY_PIXEL_PERCENTAGE', 10))
   .filter(ee.Filter.date('2022-01-01', '2022-05-31'))
   .filter(ee.Filter.bounds(geometry));
   
+var kenyaMosaic = collectionKenya.mosaic();
+var clippedKenyaMosaic = kenyaMosaic.clip(geometry);
+  
 var sentinelMosaic = filtered.mosaic();
 var sentinelComposite = filtered.median();
 
 Map.addLayer(sentinelComposite, rgbVis, 'Sentinel Median Composite');
 Map.addLayer(sentinelMosaic, rgbVis, 'Sentinel Mosaic');
 
-[[-180.000015, 90.000052], [-180.000015, 84.112853], [-179.999925, 84.112853], [-179.999925, 90.000052], [-180.000015, 90.000052]]
