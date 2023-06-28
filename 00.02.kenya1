@@ -29,7 +29,7 @@ var rgbVis = {
 };
 
 var filtered = s2.filter(ee.Filter.lt('CLOUDY_PIXEL_PERCENTAGE', 10))
-  .filter(ee.Filter.date('2022-01-01', '2022-05-31'))
+  .filter(ee.Filter.date('2021-01-01', '2021-08-01'))
   .filter(ee.Filter.bounds(geometry));
   
 var kenyaMosaic = collectionKenya.mosaic();
@@ -37,7 +37,11 @@ var clippedKenyaMosaic = kenyaMosaic.clip(geometry);
   
 var sentinelMosaic = filtered.mosaic();
 var sentinelComposite = filtered.median();
-
-Map.addLayer(sentinelComposite, rgbVis, 'Sentinel Median Composite');
-Map.addLayer(sentinelMosaic, rgbVis, 'Sentinel Mosaic');
-
+var test = sentinelComposite.clip(geometry);
+Map.addLayer(test, rgbVis, 'Sentinel Median Composite');
+//Map.addLayer(sentinelMosaic, rgbVis, 'Sentinel Mosaic');
+var image = ee.Image(clippedKenyaMosaic);
+var areasGreaterThanZero = image.gt(0);
+var maskedImage = image.updateMask(areasGreaterThanZero);
+Map.addLayer(maskedImage, {}, 'Areas greater than 0');
+//Map.addLayer(clippedKenyaMosaic, {}, 'Areas greater than 0');
