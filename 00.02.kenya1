@@ -40,21 +40,21 @@ var sentinelComposite = filtered.median();
 var test = sentinelComposite.clip(geometry);
 //Map.addLayer(test, rgbVis, 'Sentinel Median Composite');
 //Map.addLayer(sentinelMosaic, rgbVis, 'Sentinel Mosaic');
-var image = ee.Image(clippedKenyaMosaic);
-var areasGreaterThanZero = image.gt(0);
+var image1 = ee.Image(clippedKenyaMosaic);
+var areasGreaterThanZero = image1.gt(0);
 var maskedImage = image.updateMask(areasGreaterThanZero);
 Map.addLayer(maskedImage, {}, 'Areas greater than 0');
 
-var maskedSentinel2 = test.updateMask(maskedImage.neq(0));
-var thresholdedSentinel2 = maskedSentinel2.gt(1);
+//var maskedSentinel2 = test.updateMask(maskedImage.eq(100));
+//var thresholdedSentinel2 = maskedSentinel2.eq(100);
 
 //var thresholdedSentinel2 = maskedSentinel2.gt(1);
 
 //Map.addLayer(maskedSentinel2,rgbVis, 'sen');
 
 
-var newImage = maskedImage.first(0);
-var cropLabel = newImage.select('b1').rename('CropLabel');
+var newImage = clippedKenyaMosaic.first(0);
+var cropLabel = newImage.select('b1').rename('cropLabel');
 var triplets = test.addBands(cropLabel);
 //Map.addLayer(triplets, rgbVis, 'triplets');
 var tripletsInt = triplets.addBands(triplets.select('B1').toInt(), ['B1'], true);
@@ -68,10 +68,10 @@ var featureCollection = tripletsInt.reduceToVectors({
   reducer: ee.Reducer.mean(),
   geometry: geometry,
   scale: 10,
-  maxPixels: 100000,
+  maxPixels: 10000,
   bestEffort: true,
 });
-/*var featureCollectionWithCoords = featureCollection.map(function(feature) {
+var featureCollectionWithCoords = featureCollection.map(function(feature) {
   // Get the centroid of the feature with a small error margin
   var centroid = feature.geometry().centroid(1); // Use an error margin of 1 meter
   
@@ -85,12 +85,14 @@ var featureCollection = tripletsInt.reduceToVectors({
 });
 Export.table.toDrive({
   collection: featureCollectionWithCoords,
-  description: 'kenya_maize1',
+  description: 'kenya_maize2',
   folder: 'NASA Harvest',
   fileFormat: 'CSV',  // or 'GeoJSON', 'KML', 'TFRecord', etc.
-});*/
+});
 //Map.addLayer(featureCollection, rgbVis, 'feature');
 //var region = ee.Geometry.Polygon([[[37.94863948200354,3.517710963219429],[38.05523678391928,3.517710963219429],[38.05523678391928,3.6243082651351695],[37.94863948200354,3.6243082651351695],[37.94863948200354,3.517710963219429]]]);
-//Map.addLayer(featureCollection,rgbVis, 'test');
-var sampleRegion = ee.Geometry.Point(34.27103257,0.586285245);
-Map.addLayer(sampleRegion, {}, 'poly1');
+Map.addLayer(image1,{}, 'test');
+Map.addLayer(collectionKenya,{}, 'test');
+//var sampleRegion = ee.Geometry.Point(34.27103257,0.586285245);
+Map.addLayer(triplets, rgbVis, 'poly1');
+
