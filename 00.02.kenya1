@@ -38,10 +38,59 @@ var clippedKenyaMosaic = kenyaMosaic.clip(geometry);
 var sentinelMosaic = filtered.mosaic();
 var sentinelComposite = filtered.median();
 var test = sentinelComposite.clip(geometry);
-Map.addLayer(test, rgbVis, 'Sentinel Median Composite');
+//Map.addLayer(test, rgbVis, 'Sentinel Median Composite');
 //Map.addLayer(sentinelMosaic, rgbVis, 'Sentinel Mosaic');
 var image = ee.Image(clippedKenyaMosaic);
 var areasGreaterThanZero = image.gt(0);
 var maskedImage = image.updateMask(areasGreaterThanZero);
 Map.addLayer(maskedImage, {}, 'Areas greater than 0');
-//Map.addLayer(clippedKenyaMosaic, {}, 'Areas greater than 0');
+
+var maskedSentinel2 = test.updateMask(maskedImage.neq(0));
+var thresholdedSentinel2 = maskedSentinel2.gt(1);
+
+//var thresholdedSentinel2 = maskedSentinel2.gt(1);
+
+//Map.addLayer(maskedSentinel2,rgbVis, 'sen');
+
+
+var newImage = maskedImage.first(0);
+var cropLabel = newImage.select('b1').rename('CropLabel');
+var triplets = test.addBands(cropLabel);
+//Map.addLayer(triplets, rgbVis, 'triplets');
+var tripletsInt = triplets.addBands(triplets.select('B1').toInt(), ['B1'], true);
+
+var bandNames = tripletsInt.bandNames();
+var bandTypes = tripletsInt.bandTypes();
+
+//print('Band Names:', bandNames);
+//print('Band Types:', bandTypes);
+var featureCollection = tripletsInt.reduceToVectors({
+  reducer: ee.Reducer.mean(),
+  geometry: geometry,
+  scale: 10,
+  maxPixels: 100000,
+  bestEffort: true,
+});
+/*var featureCollectionWithCoords = featureCollection.map(function(feature) {
+  // Get the centroid of the feature with a small error margin
+  var centroid = feature.geometry().centroid(1); // Use an error margin of 1 meter
+  
+  // Get the coordinates of the centroid
+  var coords = centroid.coordinates();
+  
+  // Add latitude and longitude properties to the feature
+  var featureWithCoords = feature.set('latitude', coords.get(1)).set('longitude', coords.get(0));
+  
+  return featureWithCoords;
+});
+Export.table.toDrive({
+  collection: featureCollectionWithCoords,
+  description: 'kenya_maize1',
+  folder: 'NASA Harvest',
+  fileFormat: 'CSV',  // or 'GeoJSON', 'KML', 'TFRecord', etc.
+});*/
+//Map.addLayer(featureCollection, rgbVis, 'feature');
+//var region = ee.Geometry.Polygon([[[37.94863948200354,3.517710963219429],[38.05523678391928,3.517710963219429],[38.05523678391928,3.6243082651351695],[37.94863948200354,3.6243082651351695],[37.94863948200354,3.517710963219429]]]);
+//Map.addLayer(featureCollection,rgbVis, 'test');
+var sampleRegion = ee.Geometry.Point(34.27103257,0.586285245);
+Map.addLayer(sampleRegion, {}, 'poly1');
