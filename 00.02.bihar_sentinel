@@ -99,17 +99,17 @@ var poly1 = ee.FeatureCollection(table4);
 var cropLabelImage = clippedFieldIdMosaic.first(0);
 var fieldIDImage = clippedRasterLabelMosaic.first(0);
 
-var cropLabel = cropLabelImage.select('b1').rename('CropLabel');
-var fieldID = fieldIDImage.select('b1').rename('FieldID');
+var cropLabel = cropLabelImage.select('b1').toInt().rename('CropLabel');
+var fieldID = fieldIDImage.select('b1').toInt().rename('FieldID');
 
 var clippedImage = sentinelMosaic.clip(poly1);
 
 var triplets = clippedImage.addBands(fieldID).addBands(cropLabel);
 print(triplets);
 //Map.addLayer(triplets,{},'triplets');
-Map.addLayer(clippedImage, {bands: ['B4', 'B3', 'B2'], min: 0, max: 3000}, 'Sentinel Mosaic');
-var combinedLayer = clippedImage.addBands(triplets);
-Map.addLayer(combinedLayer, {bands: ['B4', 'B3', 'B2'], min: 0, max: 3000}, 'Combined Layer');
+//Map.addLayer(clippedImage, {bands: ['B4', 'B3', 'B2'], min: 0, max: 3000}, 'Sentinel Mosaic');
+//var combinedLayer = clippedImage.addBands(triplets);
+Map.addLayer(triplets, {bands: ['B4', 'B3', 'B2'], min: 0, max: 3000}, 'Combined Layer');
 
 // Define a region of interest for sampling
 //var sampleRegion = ee.Geometry.Point(87.21936, 25.49852);  // Specify the coordinates of the sample point
@@ -122,25 +122,36 @@ Map.addLayer(combinedLayer, {bands: ['B4', 'B3', 'B2'], min: 0, max: 3000}, 'Com
 //});
 
 // Get the first feature from the sample
-var firstFeature = sample.first();
+//var firstFeature = sample.first();
 
 // Get the field ID and crop label values from the feature
-var fieldIDValue = firstFeature.get('FieldID');
-var cropLabelValue = firstFeature.get('CropLabel');
+//var fieldIDValue = firstFeature.get('FieldID');
+//var cropLabelValue = firstFeature.get('CropLabel');
 
 // Print the field ID and crop label values
 //print('Field ID:', fieldIDValue);
 //print('Crop Label:', cropLabelValue);
 
-var featureCollection = combinedLayer.reduceToVectors({
+var featureCollection = triplets.reduceToVectors({
   reducer: ee.Reducer.mean(),
   geometry: poly1,
   scale: 10,
 });
-
-Map.addLayer(featureCollection, {bands: ['B4', 'B3', 'B2'], min: 0, max: 3000}, 'features');
+var featureCollectionWithCoords = featureCollection.map(function(feature) {
+  // Get the centroid of the feature with a small error margin
+  var centroid = feature.geometry().centroid(1); // Use an error margin of 1 meter
+  
+  // Get the coordinates of the centroid
+  var coords = centroid.coordinates();
+  
+  // Add latitude and longitude properties to the feature
+  var featureWithCoords = feature.set('latitude', coords.get(1)).set('longitude', coords.get(0));
+  
+  return featureWithCoords;
+});
+//Map.addLayer(featureCollection, {bands: ['B4', 'B3', 'B2'], min: 0, max: 3000}, 'features');
 Export.table.toAsset({
-  collection: featureCollection,
+  collection: featureCollectionWithCoords,
   description: 'combined_layer_asset',
   assetId: 'projects/ee-manavgupta/assets/combined_Bihar',
 });
