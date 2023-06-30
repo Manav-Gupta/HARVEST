@@ -91,7 +91,8 @@ var abc = ee.FeatureCollection(table);
 
 //Map.addLayer(abc.draw({color: 'ff0000', pointRadius: 1}), {}, 'abc');
 var poly1 = ee.FeatureCollection(table4);
-//Map.addLayer(poly1.draw({color: 'black', pointRadius: 1}), {}, 'poly1');
+var centrods = table4.map(function(f){return f.centroid()})
+Map.addLayer(centrods, {}, 'poly1');
 
 //var region = ee.Geometry.Polygon([[[87.459246, 25.691498], [87.459158, 25.668381], [87.470118, 25.668347], [87.470119, 25.668527], [87.470418, 25.668526], [87.470418, 25.668436], [87.470816, 25.668435], [87.470816, 25.668344], [87.484666, 25.668299], [87.484759, 25.691416], [87.459246, 25.691498]]]);
 //Map.addLayer(region14,{min: 1000, max: 2000}, 'SRTM14');
@@ -106,6 +107,8 @@ var clippedImage = sentinelMosaic.clip(poly1);
 
 var triplets = clippedImage.addBands(fieldID).addBands(cropLabel);
 print(triplets);
+//var check = triplets.bandTypes();
+//print(check);
 //Map.addLayer(triplets,{},'triplets');
 //Map.addLayer(clippedImage, {bands: ['B4', 'B3', 'B2'], min: 0, max: 3000}, 'Sentinel Mosaic');
 //var combinedLayer = clippedImage.addBands(triplets);
@@ -137,6 +140,8 @@ var featureCollection = triplets.reduceToVectors({
   geometry: poly1,
   scale: 10,
 });
+var validationTrainSet = triplets.sampleRegions({collection:centrods, scale:10, tileScale:12, geometries:true})
+print(validationTrainSet)
 var featureCollectionWithCoords = featureCollection.map(function(feature) {
   // Get the centroid of the feature with a small error margin
   var centroid = feature.geometry().centroid(1); // Use an error margin of 1 meter
@@ -150,15 +155,15 @@ var featureCollectionWithCoords = featureCollection.map(function(feature) {
   return featureWithCoords;
 });
 //Map.addLayer(featureCollection, {bands: ['B4', 'B3', 'B2'], min: 0, max: 3000}, 'features');
-Export.table.toAsset({
+/*Export.table.toAsset({
   collection: featureCollectionWithCoords,
   description: 'combined_layer_asset',
   assetId: 'projects/ee-manavgupta/assets/combined_Bihar',
 });
 
 Export.table.toDrive({
-  collection: featureCollection,
-  description: 'combined_Bihar',
+  collection: featureCollectionWithCoords,
+  description: 'combined_Bihar3',
   folder: 'NASA Harvest',
   fileFormat: 'CSV',  // or 'GeoJSON', 'KML', 'TFRecord', etc.
-});
+});*/
