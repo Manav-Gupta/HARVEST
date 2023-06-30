@@ -1,17 +1,5 @@
 /**** Start of imports. If edited, may not auto-convert in the playground. ****/
-var s2 = ee.ImageCollection("COPERNICUS/S2_SR"),
-    image = ee.Image("projects/ee-manavgupta/assets/Kenya/kenya1"),
-    image2 = ee.Image("projects/ee-manavgupta/assets/Kenya/kenya2"),
-    image3 = ee.Image("projects/ee-manavgupta/assets/Kenya/kenya3"),
-    image4 = ee.Image("projects/ee-manavgupta/assets/Kenya/kenya4"),
-    image5 = ee.Image("projects/ee-manavgupta/assets/Kenya/kenya5"),
-    image7 = ee.Image("projects/ee-manavgupta/assets/Kenya/kenya7"),
-    image6 = ee.Image("projects/ee-manavgupta/assets/Kenya/kenya6"),
-    image8 = ee.Image("projects/ee-manavgupta/assets/Kenya/kenya8"),
-    image9 = ee.Image("projects/ee-manavgupta/assets/Kenya/kenya9"),
-    image10 = ee.Image("projects/ee-manavgupta/assets/Kenya/kenya10"),
-    image11 = ee.Image("projects/ee-manavgupta/assets/Kenya/kenya11"),
-    image12 = ee.Image("projects/ee-manavgupta/assets/Kenya/kenya12");
+var s2 = ee.ImageCollection("COPERNICUS/S2_SR");
 /***** End of imports. If edited, may not auto-convert in the playground. *****/
 
 var collectionKenya = ee.ImageCollection(
@@ -41,9 +29,9 @@ var test = sentinelComposite.clip(geometry);
 //Map.addLayer(test, rgbVis, 'Sentinel Median Composite');
 //Map.addLayer(sentinelMosaic, rgbVis, 'Sentinel Mosaic');
 var image1 = ee.Image(clippedKenyaMosaic);
-var areasGreaterThanZero = image1.gt(0);
-var maskedImage = image.updateMask(areasGreaterThanZero);
-Map.addLayer(maskedImage, {}, 'Areas greater than 0');
+var areasGreaterThanZero = image1.eq(100);
+var maskedImage = image1.updateMask(areasGreaterThanZero);
+Map.addLayer(kenyaMosaic, {min:0,max:100,palette:['grey','green']}, 'Areas greater than 0');
 
 //var maskedSentinel2 = test.updateMask(maskedImage.eq(100));
 //var thresholdedSentinel2 = maskedSentinel2.eq(100);
@@ -68,7 +56,7 @@ var featureCollection = tripletsInt.reduceToVectors({
   reducer: ee.Reducer.mean(),
   geometry: geometry,
   scale: 10,
-  maxPixels: 10000,
+  maxPixels: 10000000,
   bestEffort: true,
 });
 var featureCollectionWithCoords = featureCollection.map(function(feature) {
@@ -83,16 +71,17 @@ var featureCollectionWithCoords = featureCollection.map(function(feature) {
   
   return featureWithCoords;
 });
-Export.table.toDrive({
+/*Export.table.toDrive({
   collection: featureCollectionWithCoords,
-  description: 'kenya_maize2',
+  description: 'kenya_maize4',
   folder: 'NASA Harvest',
   fileFormat: 'CSV',  // or 'GeoJSON', 'KML', 'TFRecord', etc.
-});
+});*/
 //Map.addLayer(featureCollection, rgbVis, 'feature');
-//var region = ee.Geometry.Polygon([[[37.94863948200354,3.517710963219429],[38.05523678391928,3.517710963219429],[38.05523678391928,3.6243082651351695],[37.94863948200354,3.6243082651351695],[37.94863948200354,3.517710963219429]]]);
-Map.addLayer(image1,{}, 'test');
-Map.addLayer(collectionKenya,{}, 'test');
-//var sampleRegion = ee.Geometry.Point(34.27103257,0.586285245);
-Map.addLayer(triplets, rgbVis, 'poly1');
+var region = ee.Geometry.Polygon([[[34.78771550098053,1.0786888527435823],[34.821424527628764,1.0786888527435823],[34.821424527628764,1.1123978793918192],[34.78771550098053,1.1123978793918192],[34.78771550098053,1.0786888527435823]]]);
+//Map.addLayer(region,{}, 'testq');
+Map.addLayer(image2,{}, 'collectionKenya');
+var sampleRegion = ee.Geometry.Point(34.80457001,1.095543382);
+//Map.addLayer(sampleRegion,{},'sampleregion')
+//Map.addLayer(triplets, rgbVis, 'poly1');
 
