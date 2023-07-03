@@ -1,0 +1,170 @@
+/**** Start of imports. If edited, may not auto-convert in the playground. ****/
+var s2 = ee.ImageCollection("COPERNICUS/S2_SR_HARMONIZED"),
+    image = ee.Image("users/manavgupta/field_ids_100_120"),
+    image2 = ee.Image("users/manavgupta/field_ids_120_140"),
+    image3 = ee.Image("users/manavgupta/field_ids_140_160"),
+    image4 = ee.Image("users/manavgupta/field_ids_160_173"),
+    image5 = ee.Image("users/manavgupta/field_ids_1_20"),
+    image6 = ee.Image("users/manavgupta/field_ids_20_40"),
+    image7 = ee.Image("users/manavgupta/field_ids_40_60"),
+    image8 = ee.Image("users/manavgupta/field_ids_60_80"),
+    image9 = ee.Image("users/manavgupta/field_ids_80_1001"),
+    image10 = ee.Image("users/manavgupta/raser_labels_15_30"),
+    image11 = ee.Image("users/manavgupta/raster_labels_1"),
+    image12 = ee.Image("users/manavgupta/raster_labels_105-120"),
+    image13 = ee.Image("users/manavgupta/raster_labels_120_135"),
+    image14 = ee.Image("users/manavgupta/raster_labels_135_150"),
+    image15 = ee.Image("users/manavgupta/raster_labels_15"),
+    image16 = ee.Image("users/manavgupta/raster_labels_150_165"),
+    image17 = ee.Image("users/manavgupta/raster_labels_165_173"),
+    image18 = ee.Image("users/manavgupta/raster_labels_30-45"),
+    image19 = ee.Image("users/manavgupta/raster_labels_45_60"),
+    image20 = ee.Image("users/manavgupta/raster_labels_60_75"),
+    image21 = ee.Image("users/manavgupta/raster_labels_75-90"),
+    image22 = ee.Image("users/manavgupta/raster_labels_90-105"),
+    table = ee.FeatureCollection("projects/ee-manavgupta/assets/final_points"),
+    table2 = ee.FeatureCollection("projects/ee-manavgupta/assets/polygon1"),
+    table3 = ee.FeatureCollection("projects/ee-manavgupta/assets/polygon2"),
+    table4 = ee.FeatureCollection("projects/ee-manavgupta/assets/multiple_polygons");
+/***** End of imports. If edited, may not auto-convert in the playground. *****/
+
+var collectionRasterLabel = ee.ImageCollection(
+  [image, image2, image3, image4, image5, image6, image7, image8, image9]);
+
+var collectionFieldId = ee.ImageCollection(
+  [image10, image11, image12, image13, image14, image15, image16, image17, image18, image19, image20, image21, image22]);
+
+// Define the FAO GAUL state code and country code
+var stateCode = '70073';
+var countryCode = '115';
+
+// Load the FAO GAUL feature collection
+var gaulFeatures = ee.FeatureCollection('FAO/GAUL/2015/level1');
+
+// Filter the features based on the state code and country code
+var filteredFeatures = gaulFeatures
+  .filter(ee.Filter.eq('ADM1_CODE', 70073));
+  
+// Get the geometry of the filtered features
+var geometry = filteredFeatures.geometry();  
+
+var fieldIdMosaic = collectionFieldId.mosaic();
+var clippedFieldIdMosaic = fieldIdMosaic.clip(geometry);
+
+var rasterLabelMosaic = collectionRasterLabel.mosaic();
+var clippedRasterLabelMosaic = rasterLabelMosaic.clip(geometry);
+
+//Map.addLayer(mosaic, {}, 'Mosaic Image');
+var rgbVis = {
+  min: 0.0,
+  max: 3000,
+  bands: ['B4', 'B3', 'B2'],
+};
+
+
+
+var filtered = s2.filter(ee.Filter.lt('CLOUDY_PIXEL_PERCENTAGE', 10))
+  .filter(ee.Filter.date('2022-01-01', '2022-05-31'))
+  .filter(ee.Filter.bounds(geometry));
+
+var sentinelMosaic = filtered.mosaic();
+var sentinelComposite = filtered.median();
+
+//Map.addLayer(sentinelComposite, rgbVis, 'Sentinel Median Composite');
+//Map.addLayer(sentinelMosaic, rgbVis, 'Sentinel Mosaic');
+// Clip the mosaic image to the specified geometry
+//var clippedMosaic = mosaic.clip(geometry);
+
+// Display the clipped mosaic on the map
+//Map.addLayer(clippedFieldIdMosaic, {}, 'Field Id Mosaic');
+//Map.addLayer(clippedRasterLabelMosaic, {}, 'Raster Label Mosaic');
+// Create a mask for non-field pixels
+//var nonFieldMask = clippedMosaic.eq(0);
+
+// Set non-field pixels to white (255)
+//var finalImage = clippedMosaic.where(nonFieldMask, 255);
+
+// Display the final image
+//Map.addLayer(finalImage, {}, 'Final Image');
+
+//var abc = ee.FeatureCollection(table);
+
+//Map.addLayer(abc.draw({color: 'ff0000', pointRadius: 1}), {}, 'abc');
+var poly1 = ee.FeatureCollection(table4);
+var centrods = table4.map(function(f){return f.centroid()})
+Map.addLayer(centrods, {}, 'poly1');
+
+//var region = ee.Geometry.Polygon([[[87.459246, 25.691498], [87.459158, 25.668381], [87.470118, 25.668347], [87.470119, 25.668527], [87.470418, 25.668526], [87.470418, 25.668436], [87.470816, 25.668435], [87.470816, 25.668344], [87.484666, 25.668299], [87.484759, 25.691416], [87.459246, 25.691498]]]);
+//Map.addLayer(region14,{min: 1000, max: 2000}, 'SRTM14');
+
+var cropLabelImage = clippedFieldIdMosaic.first(0);
+var fieldIDImage = clippedRasterLabelMosaic.first(0);
+
+var cropLabel = cropLabelImage.select('b1').toInt().rename('CropLabel');
+var fieldID = fieldIDImage.select('b1').toInt().rename('FieldID');
+
+var clippedImage = sentinelMosaic.clip(poly1);
+
+var triplets = clippedImage.addBands(fieldID).addBands(cropLabel);
+//print(triplets);
+//var check = triplets.bandTypes();
+//print(check);
+//Map.addLayer(triplets,{},'triplets');
+//Map.addLayer(clippedImage, {bands: ['B4', 'B3', 'B2'], min: 0, max: 3000}, 'Sentinel Mosaic');
+//var combinedLayer = clippedImage.addBands(triplets);
+Map.addLayer(triplets, {bands: ['B4', 'B3', 'B2'], min: 0, max: 3000}, 'Combined Layer');
+
+// Define a region of interest for sampling
+//var sampleRegion = ee.Geometry.Point(87.21936, 25.49852);  // Specify the coordinates of the sample point
+
+// Sample the values of field ID and crop label at the sample point
+//var sample = combinedLayer.sampleRegions({
+//  collection: sampleRegion,
+//  scale: 10,
+//  geometries: true
+//});
+
+// Get the first feature from the sample
+//var firstFeature = sample.first();
+
+// Get the field ID and crop label values from the feature
+//var fieldIDValue = firstFeature.get('FieldID');
+//var cropLabelValue = firstFeature.get('CropLabel');
+
+// Print the field ID and crop label values
+//print('Field ID:', fieldIDValue);
+//print('Crop Label:', cropLabelValue);
+
+/*var featureCollection = triplets.reduceToVectors({
+  reducer: ee.Reducer.mean(),
+  geometry: poly1,
+  scale: 10,
+});*/
+//var validationTrainSet = triplets.sampleRegions({collection:centrods, scale:10, tileScale:12, geometries:true})
+var validationTrainSet = triplets.sample({region:centrods, scale:10, numPixels:10000, tileScale:12, geometries:true})
+print(validationTrainSet)
+var featureCollectionWithCoords = validationTrainSet.map(function(feature) {
+  // Get the centroid of the feature with a small error margin
+  var centroid = feature.geometry().centroid(1); // Use an error margin of 1 meter
+  
+  // Get the coordinates of the centroid
+  var coords = centroid.coordinates();
+  
+  // Add latitude and longitude properties to the feature
+  var featureWithCoords = feature.set('latitude', coords.get(1)).set('longitude', coords.get(0));
+  
+  return featureWithCoords;
+});
+//Map.addLayer(featureCollection, {bands: ['B4', 'B3', 'B2'], min: 0, max: 3000}, 'features');
+/*Export.table.toAsset({
+  collection: featureCollectionWithCoords,
+  description: 'bihar',
+  assetId: 'projects/ee-manavgupta/assets/bihar',
+});*/
+
+Export.table.toDrive({
+  collection: featureCollectionWithCoords,
+  description: 'bihar1',
+  folder: 'NASA Harvest',
+  fileFormat: 'CSV',  // or 'GeoJSON', 'KML', 'TFRecord', etc.
+});
