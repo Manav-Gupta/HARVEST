@@ -11,10 +11,10 @@ var s2 = ee.ImageCollection("COPERNICUS/S2_SR"),
 var collectionKenya = ee.ImageCollection([image, image2, image3, image4, image5, image6]);
   
 var countryCode = '133';
-var localCode = '51325';
+var localCode = '51332';
 var gaulFeatures = ee.FeatureCollection('FAO/GAUL/2015/level2');
 var filteredFeatures = gaulFeatures
-  .filter(ee.Filter.eq('ADM1_CODE', 51325));
+  .filter(ee.Filter.eq('ADM1_CODE', 51332));
 var geometry = filteredFeatures.geometry();
 var rgbVis = {
   min: 0.0,
@@ -52,7 +52,7 @@ var cropLabel = newImage.select('b1').rename('cropLabel');
 var triplets = test.addBands(cropLabel);
 //var features = ee.FeatureCollection(triplets);
 //Map.addLayer(triplets, rgbVis, 'triplets');
-var validationTrainSet = triplets.sampleRegions({collection:geometry, scale:10, tileScale:12, geometries:true})
+var validationTrainSet = triplets.sample({region:geometry, scale:10, numPixels:10000, tileScale:12, geometries:true})
 print(validationTrainSet);
 //var tripletsInt = triplets.addBands(triplets.select('B1').toInt(), ['B1'], true);
 
@@ -68,7 +68,7 @@ print(validationTrainSet);
   maxPixels: 10000000,
   bestEffort: true,
 });*/
-/*var featureCollectionWithCoords = featureCollection.map(function(feature) {
+var featureCollectionWithCoords = validationTrainSet.map(function(feature) {
   // Get the centroid of the feature with a small error margin
   var centroid = feature.geometry().centroid(1); // Use an error margin of 1 meter
   
@@ -79,13 +79,13 @@ print(validationTrainSet);
   var featureWithCoords = feature.set('latitude', coords.get(1)).set('longitude', coords.get(0));
   
   return featureWithCoords;
-});*/
-/*Export.table.toDrive({
+});
+Export.table.toDrive({
   collection: featureCollectionWithCoords,
-  description: 'kenya_maize4',
-  folder: 'NASA Harvest',
+  description: 'kenya_western',
+  folder: 'kenya summer1',
   fileFormat: 'CSV',  // or 'GeoJSON', 'KML', 'TFRecord', etc.
-});*/
+})
 //Map.addLayer(featureCollection, rgbVis, 'feature');
 //var region = ee.Geometry.Polygon([[[34.78771550098053,1.0786888527435823],[34.821424527628764,1.0786888527435823],[34.821424527628764,1.1123978793918192],[34.78771550098053,1.1123978793918192],[34.78771550098053,1.0786888527435823]]]);
 //Map.addLayer(region,{}, 'testq');
@@ -93,4 +93,8 @@ print(validationTrainSet);
 //var sampleRegion = ee.Geometry.Point(35.0891, 0.6556);
 //Map.addLayer(sampleRegion,{},'sampleregion')
 //Map.addLayer(triplets, rgbVis, 'poly1');
-
+Export.table.toAsset({
+  collection: featureCollectionWithCoords,
+  description: 'kenya_western',
+  assetId: 'projects/ee-manavgupta/assets/Kenya/kenya_western',
+});
