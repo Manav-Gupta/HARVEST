@@ -10,11 +10,11 @@ var s2 = ee.ImageCollection("COPERNICUS/S2_SR"),
 
 var collectionKenya = ee.ImageCollection([image, image2, image3, image4, image5, image6]);
   
-var countryCode = '133';
+var countryCode = '253';
 var localCode = '51332';
 var gaulFeatures = ee.FeatureCollection('FAO/GAUL/2015/level2');
 var filteredFeatures = gaulFeatures
-  .filter(ee.Filter.eq('ADM1_CODE', 51332));
+  .filter(ee.Filter.eq('ADM0_CODE',253));
 var geometry = filteredFeatures.geometry();
 var rgbVis = {
   min: 0.0,
@@ -32,12 +32,12 @@ var clippedKenyaMosaic = kenyaMosaic.clip(geometry);
 var sentinelMosaic = filtered.mosaic();
 var sentinelComposite = filtered.median();
 var test = sentinelComposite.clip(geometry);
-Map.addLayer(clippedKenyaMosaic, {}, 'Sentinel Median Composite');
-//Map.addLayer(sentinelMosaic, rgbVis, 'Sentinel Mosaic');
+//Map.addLayer(clippedKenyaMosaic, {}, 'Sentinel Median Composite');
+//Map.addLayer(collectionKenya, {}, 'Sentinel Mosaic');
 var image1 = ee.Image(clippedKenyaMosaic);
 var areasGreaterThanZero = image1.eq(100);
 var maskedImage = image1.updateMask(areasGreaterThanZero);
-Map.addLayer(maskedImage, {min:0,max:100,palette:['grey','black']}, 'Areas greater than 0');
+//Map.addLayer(maskedImage, {min:0,max:100,palette:['grey','black']}, 'Areas greater than 0');
 
 //var maskedSentinel2 = test.updateMask(maskedImage.eq(100));
 //var thresholdedSentinel2 = maskedSentinel2.eq(100);
@@ -53,7 +53,7 @@ var triplets = test.addBands(cropLabel);
 //var features = ee.FeatureCollection(triplets);
 //Map.addLayer(triplets, rgbVis, 'triplets');
 var validationTrainSet = triplets.sample({region:geometry, scale:10, numPixels:10000, tileScale:12, geometries:true})
-print(validationTrainSet);
+//print(validationTrainSet);
 //var tripletsInt = triplets.addBands(triplets.select('B1').toInt(), ['B1'], true);
 
 //var bandNames = tripletsInt.bandNames();
@@ -80,21 +80,21 @@ var featureCollectionWithCoords = validationTrainSet.map(function(feature) {
   
   return featureWithCoords;
 });
-Export.table.toDrive({
+/*Export.table.toDrive({
   collection: featureCollectionWithCoords,
-  description: 'kenya_western',
+  description: 'uganda',
   folder: 'kenya summer1',
   fileFormat: 'CSV',  // or 'GeoJSON', 'KML', 'TFRecord', etc.
-})
+})*/
 //Map.addLayer(featureCollection, rgbVis, 'feature');
-//var region = ee.Geometry.Polygon([[[34.78771550098053,1.0786888527435823],[34.821424527628764,1.0786888527435823],[34.821424527628764,1.1123978793918192],[34.78771550098053,1.1123978793918192],[34.78771550098053,1.0786888527435823]]]);
+//var region = ee.Geometry.Polygon([[[83.42522032910868, 24.2035358681121],[88.25920470410868, 27.50501004679436]]]);
 //Map.addLayer(region,{}, 'testq');
 //Map.addLayer(image2,{}, 'collectionKenya');
 //var sampleRegion = ee.Geometry.Point(35.0891, 0.6556);
 //Map.addLayer(sampleRegion,{},'sampleregion')
 //Map.addLayer(triplets, rgbVis, 'poly1');
-Export.table.toAsset({
+/*Export.table.toAsset({
   collection: featureCollectionWithCoords,
-  description: 'kenya_western',
-  assetId: 'projects/ee-manavgupta/assets/Kenya/kenya_western',
-});
+  description: 'uganda',
+  assetId: 'projects/ee-manavgupta/assets/Kenya/uganda',
+});*/
