@@ -54,7 +54,7 @@ var clippedFieldIdMosaic = fieldIdMosaic.clip(geometry);
 var rasterLabelMosaic = collectionRasterLabel.mosaic();
 var clippedRasterLabelMosaic = rasterLabelMosaic.clip(geometry);
 
-//Map.addLayer(mosaic, {}, 'Mosaic Image');
+Map.addLayer(clippedRasterLabelMosaic, {}, 'Mosaic Image');
 var rgbVis = {
   min: 0.0,
   max: 3000,
@@ -92,10 +92,10 @@ var sentinelComposite = filtered.median();
 //Map.addLayer(abc.draw({color: 'ff0000', pointRadius: 1}), {}, 'abc');
 var poly1 = ee.FeatureCollection(table4);
 var centrods = table4.map(function(f){return f.centroid()})
-Map.addLayer(centrods, {}, 'poly1');
+Map.addLayer(poly1, {}, 'poly1');
 
-//var region = ee.Geometry.Polygon([[[87.459246, 25.691498], [87.459158, 25.668381], [87.470118, 25.668347], [87.470119, 25.668527], [87.470418, 25.668526], [87.470418, 25.668436], [87.470816, 25.668435], [87.470816, 25.668344], [87.484666, 25.668299], [87.484759, 25.691416], [87.459246, 25.691498]]]);
-//Map.addLayer(region14,{min: 1000, max: 2000}, 'SRTM14');
+var region = ee.Geometry.Polygon([[[81.6926, 27.533693], [81.692904, 27.533692], [81.692902, 27.533421], [81.692801, 27.533421], [81.692799, 27.533241], [81.692698, 27.533241], [81.692698, 27.533151], [81.6929, 27.53315], [81.6929, 27.53306], [81.693102, 27.533059], [81.693102, 27.532968], [81.693203, 27.532968], [81.6932, 27.532517], [81.693099, 27.532517], [81.693098, 27.532427], [81.692794, 27.532428], [81.692795, 27.532519], [81.692592, 27.53252], [81.692593, 27.53261], [81.692492, 27.53261], [81.692494, 27.532971], [81.692393, 27.532972], [81.692395, 27.533333], [81.692496, 27.533333], [81.692497, 27.533513], [81.692599, 27.533513], [81.6926, 27.533693]]]);
+Map.addLayer(region,{min: 1000, max: 2000}, 'SRTM14');
 
 var cropLabelImage = clippedFieldIdMosaic.first(0);
 var fieldIDImage = clippedRasterLabelMosaic.first(0);
@@ -112,11 +112,11 @@ var triplets = clippedImage.addBands(fieldID).addBands(cropLabel);
 //Map.addLayer(triplets,{},'triplets');
 //Map.addLayer(clippedImage, {bands: ['B4', 'B3', 'B2'], min: 0, max: 3000}, 'Sentinel Mosaic');
 //var combinedLayer = clippedImage.addBands(triplets);
-Map.addLayer(triplets, {bands: ['B4', 'B3', 'B2'], min: 0, max: 3000}, 'Combined Layer');
+//Map.addLayer(triplets, {bands: ['B4', 'B3', 'B2'], min: 0, max: 3000}, 'Combined Layer');
 
 // Define a region of interest for sampling
-//var sampleRegion = ee.Geometry.Point(87.21936, 25.49852);  // Specify the coordinates of the sample point
-
+var sampleRegion = ee.Geometry.Point(87.88339501882432, 25.75889280797354);  // Specify the coordinates of the sample point
+Map.addLayer(sampleRegion,{},'point');
 // Sample the values of field ID and crop label at the sample point
 //var sample = combinedLayer.sampleRegions({
 //  collection: sampleRegion,
@@ -142,7 +142,7 @@ Map.addLayer(triplets, {bands: ['B4', 'B3', 'B2'], min: 0, max: 3000}, 'Combined
 });*/
 //var validationTrainSet = triplets.sampleRegions({collection:centrods, scale:10, tileScale:12, geometries:true})
 var validationTrainSet = triplets.sample({region:centrods, scale:10, numPixels:10000, tileScale:12, geometries:true})
-print(validationTrainSet)
+//print(validationTrainSet)
 var featureCollectionWithCoords = validationTrainSet.map(function(feature) {
   // Get the centroid of the feature with a small error margin
   var centroid = feature.geometry().centroid(1); // Use an error margin of 1 meter
@@ -161,10 +161,10 @@ var featureCollectionWithCoords = validationTrainSet.map(function(feature) {
   description: 'bihar',
   assetId: 'projects/ee-manavgupta/assets/bihar',
 });*/
-
+/*
 Export.table.toDrive({
   collection: featureCollectionWithCoords,
   description: 'bihar1',
   folder: 'NASA Harvest',
   fileFormat: 'CSV',  // or 'GeoJSON', 'KML', 'TFRecord', etc.
-});
+});*/
