@@ -1,0 +1,57 @@
+/**** Start of imports. If edited, may not auto-convert in the playground. ****/
+var table = ee.FeatureCollection("projects/ee-manavgupta/assets/Kenya/kenya_rift_valley"),
+    s2 = ee.ImageCollection("COPERNICUS/S2_SR_HARMONIZED"),
+    testgeo = 
+    /* color: #d63000 */
+    /* displayProperties: [
+      {
+        "type": "rectangle"
+      }
+    ] */
+    ee.Geometry.Polygon(
+        [[[35.14991659097305, 1.0489760074035885],
+          [35.14991659097305, 0.4997118710545379],
+          [35.79261678628555, 0.4997118710545379],
+          [35.79261678628555, 1.0489760074035885]]], null, false);
+/***** End of imports. If edited, may not auto-convert in the playground. *****/
+var poly1 = ee.FeatureCollection(table);
+//Map.addLayer(poly1,{},'poly')
+var gaulFeatures = ee.FeatureCollection('FAO/GAUL/2015/level1');
+
+// Filter the features based on the state code and country code
+var filteredFeatures = gaulFeatures
+  .filter(ee.Filter.eq('ADM1_CODE', 51331));
+// Get the geometry of the filtered features
+var geometry = filteredFeatures.geometry();  
+
+
+var rgbVis = {
+  min: 0.0,
+  max: 3000,
+  bands: ['B4', 'B3', 'B2'],
+};
+
+var filtered = s2.filter(ee.Filter.lt('CLOUDY_PIXEL_PERCENTAGE', 10))
+  .filter(ee.Filter.date('2022-01-01', '2022-05-31'))
+  .filter(ee.Filter.bounds(geometry));
+
+var sentinelComposite = filtered.median().clip(geometry);
+//Map.addLayer(sentinelComposite,rgbVis,'asds');
+var classifier = ee.Classifier.smileRandomForest(50).train({
+  features: poly1,  
+  classProperty: 'cropLabel', 
+  inputProperties: sentinelComposite.bandNames()
+});
+
+print('Results of trained classifier', classifier.explain());
+var trainAccuracy = classifier.confusionMatrix();
+print('Training error matrix', trainAccuracy);
+print('Training overall accuracy', trainAccuracy.accuracy());
+var classified = sentinelComposite.classify(classifier);
+print(classified);
+//Map.addLayer(classified, {min:0,max:100,palette:['red', 'green']}, '2019'); 
+
+
+//print(classified)
+//Map.addLayer(classified, {}, '2019'); 
+print(testgeo);
