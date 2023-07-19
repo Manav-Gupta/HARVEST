@@ -13,7 +13,41 @@ var s2 = ee.ImageCollection("COPERNICUS/S2_SR_HARMONIZED"),
     table2 = ee.FeatureCollection("projects/ee-manavgupta/assets/polygon1"),
     table3 = ee.FeatureCollection("projects/ee-manavgupta/assets/polygon2"),
     table4 = ee.FeatureCollection("projects/ee-manavgupta/assets/multiple_polygons"),
-    table5 = ee.FeatureCollection("projects/ee-manavgupta/assets/check_coords3");
+    table5 = ee.FeatureCollection("projects/ee-manavgupta/assets/check_coords3"),
+    geometry = 
+    /* color: #98ff00 */
+    /* shown: false */
+    /* displayProperties: [
+      {
+        "type": "rectangle"
+      },
+      {
+        "type": "rectangle"
+      },
+      {
+        "type": "rectangle"
+      },
+      {
+        "type": "rectangle"
+      }
+    ] */
+    ee.Geometry.MultiPolygon(
+        [[[[81.06551542720422, 28.36907163403206],
+           [81.06551542720422, 26.771998245277103],
+           [82.77938261470422, 26.771998245277103],
+           [82.77938261470422, 28.36907163403206]]],
+         [[[86.77840605220422, 26.004362730996405],
+           [86.77840605220422, 25.012841951286152],
+           [88.18465605220422, 25.012841951286152],
+           [88.18465605220422, 26.004362730996405]]],
+         [[[76.03377714595422, 25.588922005734513],
+           [76.03377714595422, 24.313961156043984],
+           [77.59383573970422, 24.313961156043984],
+           [77.59383573970422, 25.588922005734513]]],
+         [[[82.69149198970422, 19.752208850922248],
+           [82.69149198970422, 18.798138470359564],
+           [84.20760527095422, 18.798138470359564],
+           [84.20760527095422, 19.752208850922248]]]], null, false);
 /***** End of imports. If edited, may not auto-convert in the playground. *****/
 
 var collectionRasterLabel = ee.ImageCollection(
@@ -93,7 +127,7 @@ var meanDictionary = sentinelComposite.reduceRegion({
   bestEffort: true
 });
 
-print(meanDictionary);
+//print(meanDictionary);
 
 var region = ee.Geometry.Polygon([[[81.6926, 27.533693], [81.692904, 27.533692], [81.692902, 27.533421], [81.692801, 27.533421], [81.692799, 27.533241], [81.692698, 27.533241], [81.692698, 27.533151], [81.6929, 27.53315], [81.6929, 27.53306], [81.693102, 27.533059], [81.693102, 27.532968], [81.693203, 27.532968], [81.6932, 27.532517], [81.693099, 27.532517], [81.693098, 27.532427], [81.692794, 27.532428], [81.692795, 27.532519], [81.692592, 27.53252], [81.692593, 27.53261], [81.692492, 27.53261], [81.692494, 27.532971], [81.692393, 27.532972], [81.692395, 27.533333], [81.692496, 27.533333], [81.692497, 27.533513], [81.692599, 27.533513], [81.6926, 27.533693]]]);
 Map.addLayer(region,{min: 1000, max: 2000}, 'SRTM14');
