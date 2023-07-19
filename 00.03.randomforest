@@ -1,26 +1,34 @@
 /**** Start of imports. If edited, may not auto-convert in the playground. ****/
 var table = ee.FeatureCollection("projects/ee-manavgupta/assets/Kenya/kenya_rift_valley"),
     s2 = ee.ImageCollection("COPERNICUS/S2_SR_HARMONIZED"),
+    image = ee.Image("projects/ee-manavgupta/assets/Kenya/kenya1"),
+    image2 = ee.Image("projects/ee-manavgupta/assets/Kenya/kenya131072"),
+    image3 = ee.Image("projects/ee-manavgupta/assets/Kenya/kenya65536"),
+    image4 = ee.Image("projects/ee-manavgupta/assets/Kenya/kenya655360"),
+    image5 = ee.Image("projects/ee-manavgupta/assets/Kenya/kenya655361"),
+    image6 = ee.Image("projects/ee-manavgupta/assets/Kenya/kenya655362"),
     testgeo = 
     /* color: #d63000 */
+    /* shown: false */
     /* displayProperties: [
       {
         "type": "rectangle"
       }
     ] */
     ee.Geometry.Polygon(
-        [[[35.14991659097305, 1.0489760074035885],
-          [35.14991659097305, 0.4997118710545379],
-          [35.79261678628555, 0.4997118710545379],
-          [35.79261678628555, 1.0489760074035885]]], null, false);
+        [[[34.42466665755258, 0.6250900306711945],
+          [34.42466665755258, 0.40262597307289216],
+          [34.68009878645883, 0.40262597307289216],
+          [34.68009878645883, 0.6250900306711945]]], null, false);
 /***** End of imports. If edited, may not auto-convert in the playground. *****/
+var collectionKenya = ee.ImageCollection([image, image2, image3, image4, image5, image6]);
 var poly1 = ee.FeatureCollection(table);
 //Map.addLayer(poly1,{},'poly')
 var gaulFeatures = ee.FeatureCollection('FAO/GAUL/2015/level1');
 
 // Filter the features based on the state code and country code
 var filteredFeatures = gaulFeatures
-  .filter(ee.Filter.eq('ADM1_CODE', 51331));
+  .filter(ee.Filter.eq('ADM1_CODE', 51332));
 // Get the geometry of the filtered features
 var geometry = filteredFeatures.geometry();  
 
@@ -32,13 +40,101 @@ var rgbVis = {
 };
 
 var filtered = s2.filter(ee.Filter.lt('CLOUDY_PIXEL_PERCENTAGE', 10))
-  .filter(ee.Filter.date('2022-01-01', '2022-05-31'))
-  .filter(ee.Filter.bounds(geometry));
+  .filter(ee.Filter.date('2021-09-01', '2022-03-01')).filter(ee.Filter.bounds(geometry)).map(function(img){var d = ee.Date(ee.Number(img.get('system:time_start')));
+              var m = ee.Number(d.get('month'));
+              var y = ee.Number(d.get('year'));
+              return img.set({'month':m, 'year':y});
+            });
+
+var kenyaMosaic = collectionKenya.mosaic();
+var clippedKenyaMosaic = kenyaMosaic.clip(geometry);
+var newImage = clippedKenyaMosaic.first(0);
+var cropLabel = newImage.select('b1').rename('cropLabel');
+
+//var start_date = ee.Date('2021-08-01')
+//var end_date = ee.Date('2022-03-01')
+var start_year = 2021;
+var end_year = 2022;
+
+// Create a list of years within the specified range.
+var years = ee.List.sequence(start_year, end_year);
+
+// Function to calculate the median composite for a given year and month.
+var calculateMedianComposite = function(year, month) {
+  // Convert the month to ee.Number.
+  var m = ee.Number(month);
+
+  // Calculate the start and end dates for the custom date range.
+  var startDate = ee.Date.fromYMD(year, m, 1);
+  var endDate = startDate.advance(1, 'month');
+  // Filter the 's2' collection for each year and month combination.
+  var filtered = s2.filter(ee.Filter.lt('CLOUDY_PIXEL_PERCENTAGE', 10))
+                  .filter(ee.Filter.date(startDate, endDate))
+                  .filter(ee.Filter.bounds(geometry));
+
+  // Calculate the median composite for the specified year and month.
+  var composite = filtered.median();
+  var triplet = composite.addBands(cropLabel);
+
+  // Set properties for year, month, and date.
+  composite = triplet.set('year', year)
+                       .set('month', m)
+                       .set('date', startDate);
+
+  return composite;
+};
+// Create an ImageCollection from the list of median composites using the map function.
+var byYearMonth = ee.ImageCollection(years.map(function(year) {
+  // Define a dictionary containing the custom range of months you want to analyze.
+  var customMonthsDict = ee.Dictionary({
+    '2021': [12],
+    '2022': [1]
+  });
+
+  // Get the custom months for the current year.
+  var yearStr = ee.String(year).slice(0, 4); // Convert year to string
+  var monthsForYear = ee.List(customMonthsDict.get(yearStr));
+
+  return monthsForYear.map(function(month) {
+    return calculateMedianComposite(year, month);
+  });
+}).flatten());
+
+// Print the ImageCollection containing median composites for the custom range of months and years.
+print(byYearMonth);
+//var validationTrainSet = byYearMonth.sample({region:geometry, scale:10, numPixels:5000, tileScale:12, geometries:true})
+
+// Define the number of samples you want to take per image.
+var numSamplesPerImage = 2500;
+
+// Sample the data in the ImageCollection.
+var sampledData = byYearMonth.map(function(image) {
+  // Sample the pixels in the image.
+  var samples = image.sample({
+    region: testgeo, // The region of interest where you want to sample
+    scale: 10, // The scale at which to sample (e.g., 10 meters)
+    numPixels: numSamplesPerImage,
+    tileScale: 12,// The number of samples to take from the image
+    seed: 12345 // Optional: set a seed for reproducible results
+  });
+
+  // Return the sampled data as a feature collection.
+  return samples;
+}).flatten();
+
+// Print the sampled data.
+print(sampledData);
+
+// Visualize the sampled data on the map.
+//Map.addLayer(sampledData, {}, 'Sampled Data');
+
 
 var sentinelComposite = filtered.median().clip(geometry);
 //Map.addLayer(sentinelComposite,rgbVis,'asds');
+
+
 var classifier = ee.Classifier.smileRandomForest(50).train({
-  features: poly1,  
+  features: sampledData,  
   classProperty: 'cropLabel', 
   inputProperties: sentinelComposite.bandNames()
 });
@@ -47,11 +143,18 @@ print('Results of trained classifier', classifier.explain());
 var trainAccuracy = classifier.confusionMatrix();
 print('Training error matrix', trainAccuracy);
 print('Training overall accuracy', trainAccuracy.accuracy());
-var classified = sentinelComposite.classify(classifier);
+var classified = sentinelComposite.clip(testgeo).classify(classifier);
 print(classified);
-//Map.addLayer(classified, {min:0,max:100,palette:['red', 'green']}, '2019'); 
-
+Map.addLayer(classified, {min:0,max:100,palette:['grey', 'red']}, 'rf'); 
+Map.addLayer(clippedKenyaMosaic, {min:0,max:100,palette:['grey', 'red']}, 'og')
 
 //print(classified)
 //Map.addLayer(classified, {}, '2019'); 
-print(testgeo);
+//print(testgeo);
+/*
+Export.table.toDrive({
+  collection: sampledData,
+  description: 'sampled_time_series',
+  folder: 'kenya summer1',
+  fileFormat: 'CSV'})  
+  */
