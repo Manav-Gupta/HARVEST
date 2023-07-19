@@ -1,0 +1,130 @@
+/**** Start of imports. If edited, may not auto-convert in the playground. ****/
+var s2 = ee.ImageCollection("COPERNICUS/S2_SR"),
+    image = ee.Image("projects/ee-manavgupta/assets/Kenya/kenya1"),
+    image2 = ee.Image("projects/ee-manavgupta/assets/Kenya/kenya131072"),
+    image3 = ee.Image("projects/ee-manavgupta/assets/Kenya/kenya65536"),
+    image4 = ee.Image("projects/ee-manavgupta/assets/Kenya/kenya655360"),
+    image5 = ee.Image("projects/ee-manavgupta/assets/Kenya/kenya655361"),
+    image6 = ee.Image("projects/ee-manavgupta/assets/Kenya/kenya655362"),
+    table = ee.FeatureCollection("projects/ee-manavgupta/assets/kenya_western_1"),
+    reg = 
+    /* color: #d63000 */
+    /* shown: false */
+    /* displayProperties: [
+      {
+        "type": "rectangle"
+      }
+    ] */
+    ee.Geometry.Polygon(
+        [[[34.93285502172253, 0.7331189280382939],
+          [34.93285502172253, 0.6816244414035924],
+          [35.03722513891003, 0.6816244414035924],
+          [35.03722513891003, 0.7331189280382939]]], null, false);
+/***** End of imports. If edited, may not auto-convert in the playground. *****/
+
+var collectionKenya = ee.ImageCollection([image, image2, image3, image4, image5, image6]);
+  
+var countryCode = '253';
+var localCode = '51332';
+var gaulFeatures = ee.FeatureCollection('FAO/GAUL/2015/level1');
+var filteredFeatures = gaulFeatures
+  .filter(ee.Filter.eq('ADM1_CODE',51332));
+var geometry = filteredFeatures.geometry();
+var rgbVis = {
+  min: 0.0,
+  max: 3000,
+  bands: ['B4', 'B3', 'B2'],
+};
+
+var filtered = s2.filter(ee.Filter.lt('CLOUDY_PIXEL_PERCENTAGE', 10))
+  .filter(ee.Filter.date('2021-02-01', '2022-09-21'))
+  .filter(ee.Filter.bounds(geometry));
+  
+var kenyaMosaic = collectionKenya.mosaic();
+var clippedKenyaMosaic = kenyaMosaic.clip(geometry);
+  
+var sentinelMosaic = filtered.mosaic();
+var sentinelComposite = filtered.median();
+var test = sentinelComposite.clip(geometry);
+Map.addLayer(clippedKenyaMosaic, {min:0,max:100,palette:['grey', 'red']}, 'Sentinel Median Composite');
+//Map.addLayer(collectionKenya, {}, 'Sentinel Mosaic');
+var image1 = ee.Image(clippedKenyaMosaic);
+var areasGreaterThanZero = image1.eq(100);
+var maskedImage = image1.updateMask(areasGreaterThanZero);
+//Map.addLayer(maskedImage, {min:0,max:100,palette:['grey','black']}, 'Areas greater than 0');
+
+//var maskedSentinel2 = test.updateMask(maskedImage.eq(100));
+//var thresholdedSentinel2 = maskedSentinel2.eq(100);
+
+//var thresholdedSentinel2 = maskedSentinel2.gt(1);
+
+//Map.addLayer(maskedSentinel2,rgbVis, 'sen');
+
+
+var newImage = clippedKenyaMosaic.first(0);
+var cropLabel = newImage.select('b1').rename('cropLabel');
+var triplets = test.addBands(cropLabel);
+print('triplets: ', triplets)
+//var features = ee.FeatureCollection(triplets);
+//Map.addLayer(triplets, rgbVis, 'triplets');
+var validationTrainSet = triplets.sample({region:geometry, scale:10, numPixels:5000, tileScale:12, geometries:true})
+//print(validationTrainSet);
+//var tripletsInt = triplets.addBands(triplets.select('B1').toInt(), ['B1'], true);
+
+var classifier = ee.Classifier.smileRandomForest(50).train({
+  features: validationTrainSet,  
+  classProperty: 'cropLabel', 
+  inputProperties: sentinelComposite.bandNames()
+});
+//var bandNames = tripletsInt.bandNames();
+//var bandTypes = tripletsInt.bandTypes();
+print('Results of trained classifier', classifier.explain());
+var trainAccuracy = classifier.confusionMatrix();
+print('Training error matrix', trainAccuracy);
+print('Training overall accuracy', trainAccuracy.accuracy());
+var classified = sentinelComposite.clip(reg).classify(classifier);
+print(classified);
+Map.addLayer(classified, {min:0,max:100,palette:['grey', 'red']}, '2019'); 
+
+//print('Band Names:', bandNames);
+//print('Band Types:', bandTypes);
+/*var featureCollection = tripletsInt.reduceToVectors({
+  reducer: ee.Reducer.mean(),
+  geometry: geometry,
+  scale: 10,
+  maxPixels: 10000000,
+  bestEffort: true,
+});*/
+var featureCollectionWithCoords = validationTrainSet.map(function(feature) {
+  // Get the centroid of the feature with a small error margin
+  var centroid = feature.geometry().centroid(1); // Use an error margin of 1 meter
+  
+  // Get the coordinates of the centroid
+  var coords = centroid.coordinates();
+  
+  // Add latitude and longitude properties to the feature
+  var featureWithCoords = feature.set('latitude', coords.get(1)).set('longitude', coords.get(0));
+  
+  return featureWithCoords;
+});
+/*
+Export.table.toDrive({
+  collection: validationTrainSet,
+  description: 'kenya_western_1000',
+  folder: 'kenya summer1',
+  fileFormat: 'CSV',  // or 'GeoJSON', 'KML', 'TFRecord', etc.
+})*/
+//Map.addLayer(featureCollection, rgbVis, 'feature');
+var region = ee.Geometry.Polygon([[[35.14991659097305,0.4997118710545379],[35.79261678628555,0.4997118710545379],[35.79261678628555,1.0489760074035885],[35.14991659097305,1.0489760074035885],[35.14991659097305,0.4997118710545379]]]);
+//Map.addLayer(region,{}, 'testq');
+//Map.addLayer(image2,{}, 'collectionKenya');
+//var sampleRegion = ee.Geometry.Point(35.0891, 0.6556);
+//Map.addLayer(sampleRegion,{},'sampleregion')
+//Map.addLayer(triplets, rgbVis, 'poly1');
+/*
+Export.table.toAsset({
+  collection: validationTrainSet,
+  description: 'kenya_western_1000',
+  assetId: 'projects/ee-manavgupta/assets/Kenya/kenya_western_1000',
+});
+*/
