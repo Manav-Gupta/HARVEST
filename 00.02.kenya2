@@ -37,7 +37,7 @@ var rgbVis = {
 };
 
 var filtered = s2.filter(ee.Filter.lt('CLOUDY_PIXEL_PERCENTAGE', 10))
-  .filter(ee.Filter.date('2021-02-01', '2022-09-21'))
+  .filter(ee.Filter.date('2021-10-01', '2021-11-01'))
   .filter(ee.Filter.bounds(geometry));
   
 var kenyaMosaic = collectionKenya.mosaic();
@@ -46,7 +46,7 @@ var clippedKenyaMosaic = kenyaMosaic.clip(geometry);
 var sentinelMosaic = filtered.mosaic();
 var sentinelComposite = filtered.median();
 var test = sentinelComposite.clip(geometry);
-Map.addLayer(clippedKenyaMosaic, {min:0,max:100,palette:['grey', 'red']}, 'Sentinel Median Composite');
+//Map.addLayer(clippedKenyaMosaic, {min:0,max:100,palette:['grey', 'red']}, 'Sentinel Median Composite');
 //Map.addLayer(collectionKenya, {}, 'Sentinel Mosaic');
 var image1 = ee.Image(clippedKenyaMosaic);
 var areasGreaterThanZero = image1.eq(100);
@@ -64,10 +64,10 @@ var maskedImage = image1.updateMask(areasGreaterThanZero);
 var newImage = clippedKenyaMosaic.first(0);
 var cropLabel = newImage.select('b1').rename('cropLabel');
 var triplets = test.addBands(cropLabel);
-print('triplets: ', triplets)
+//print('triplets: ', triplets)
 //var features = ee.FeatureCollection(triplets);
 //Map.addLayer(triplets, rgbVis, 'triplets');
-var validationTrainSet = triplets.sample({region:geometry, scale:10, numPixels:5000, tileScale:12, geometries:true})
+var validationTrainSet = triplets.sample({region:geometry, scale:10, numPixels:50, tileScale:12, geometries:true})
 //print(validationTrainSet);
 //var tripletsInt = triplets.addBands(triplets.select('B1').toInt(), ['B1'], true);
 
@@ -83,8 +83,8 @@ var trainAccuracy = classifier.confusionMatrix();
 print('Training error matrix', trainAccuracy);
 print('Training overall accuracy', trainAccuracy.accuracy());
 var classified = sentinelComposite.clip(reg).classify(classifier);
-print(classified);
-Map.addLayer(classified, {min:0,max:100,palette:['grey', 'red']}, '2019'); 
+//print(classified);
+//Map.addLayer(classified, {min:0,max:100,palette:['grey', 'red']}, '2019'); 
 
 //print('Band Names:', bandNames);
 //print('Band Types:', bandTypes);
@@ -115,12 +115,23 @@ Export.table.toDrive({
   fileFormat: 'CSV',  // or 'GeoJSON', 'KML', 'TFRecord', etc.
 })*/
 //Map.addLayer(featureCollection, rgbVis, 'feature');
-var region = ee.Geometry.Polygon([[[35.14991659097305,0.4997118710545379],[35.79261678628555,0.4997118710545379],[35.79261678628555,1.0489760074035885],[35.14991659097305,1.0489760074035885],[35.14991659097305,0.4997118710545379]]]);
+//var region = ee.Geometry.Polygon([[[35.14991659097305,0.4997118710545379],[35.79261678628555,0.4997118710545379],[35.79261678628555,1.0489760074035885],[35.14991659097305,1.0489760074035885],[35.14991659097305,0.4997118710545379]]]);
 //Map.addLayer(region,{}, 'testq');
 //Map.addLayer(image2,{}, 'collectionKenya');
 //var sampleRegion = ee.Geometry.Point(35.0891, 0.6556);
 //Map.addLayer(sampleRegion,{},'sampleregion')
-//Map.addLayer(triplets, rgbVis, 'poly1');
+function maskS2clouds(image) {
+  var qa = image.select('QA60');
+  var cloudBitMask = 1 << 10;
+  var cirrusBitMask = 1 << 11;
+  var mask = qa.bitwiseAnd(cloudBitMask).eq(0).and(
+             qa.bitwiseAnd(cirrusBitMask).eq(0));
+  return image.updateMask(mask)
+      .select('B.*')
+      .copyProperties(image, ['system:time_start']);
+}
+var maskedImage = ee.Image(maskS2clouds(filtered));
+Map.addLayer(maskedImage, rgbVis, 'poly1');
 /*
 Export.table.toAsset({
   collection: validationTrainSet,
