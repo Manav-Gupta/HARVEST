@@ -40,11 +40,7 @@ var rgbVis = {
 };
 
 var filtered = s2.filter(ee.Filter.lt('CLOUDY_PIXEL_PERCENTAGE', 10))
-  .filter(ee.Filter.date('2021-09-01', '2022-03-01')).filter(ee.Filter.bounds(geometry)).map(function(img){var d = ee.Date(ee.Number(img.get('system:time_start')));
-              var m = ee.Number(d.get('month'));
-              var y = ee.Number(d.get('year'));
-              return img.set({'month':m, 'year':y});
-            });
+  .filter(ee.Filter.date('2021-11-01', '2021-12-01')).filter(ee.Filter.bounds(geometry))
 
 var kenyaMosaic = collectionKenya.mosaic();
 var clippedKenyaMosaic = kenyaMosaic.clip(geometry);
@@ -54,7 +50,7 @@ var cropLabel = newImage.select('b1').rename('cropLabel');
 //var start_date = ee.Date('2021-08-01')
 //var end_date = ee.Date('2022-03-01')
 var start_year = 2021;
-var end_year = 2022;
+var end_year = 2021;
 
 // Create a list of years within the specified range.
 var years = ee.List.sequence(start_year, end_year);
@@ -87,8 +83,7 @@ var calculateMedianComposite = function(year, month) {
 var byYearMonth = ee.ImageCollection(years.map(function(year) {
   // Define a dictionary containing the custom range of months you want to analyze.
   var customMonthsDict = ee.Dictionary({
-    '2021': [12],
-    '2022': [1]
+    '2021': [11,12]
   });
 
   // Get the custom months for the current year.
@@ -105,7 +100,7 @@ print(byYearMonth);
 //var validationTrainSet = byYearMonth.sample({region:geometry, scale:10, numPixels:5000, tileScale:12, geometries:true})
 
 // Define the number of samples you want to take per image.
-var numSamplesPerImage = 2500;
+var numSamplesPerImage = 1500;
 
 // Sample the data in the ImageCollection.
 var sampledData = byYearMonth.map(function(image) {
@@ -123,7 +118,7 @@ var sampledData = byYearMonth.map(function(image) {
 }).flatten();
 
 // Print the sampled data.
-print(sampledData);
+//print(sampledData);
 
 // Visualize the sampled data on the map.
 //Map.addLayer(sampledData, {}, 'Sampled Data');
@@ -133,7 +128,7 @@ var sentinelComposite = filtered.median().clip(geometry);
 //Map.addLayer(sentinelComposite,rgbVis,'asds');
 
 
-var classifier = ee.Classifier.smileRandomForest(50).train({
+var classifier = ee.Classifier.smileRandomForest(150).train({
   features: sampledData,  
   classProperty: 'cropLabel', 
   inputProperties: sentinelComposite.bandNames()
@@ -143,9 +138,9 @@ print('Results of trained classifier', classifier.explain());
 var trainAccuracy = classifier.confusionMatrix();
 print('Training error matrix', trainAccuracy);
 print('Training overall accuracy', trainAccuracy.accuracy());
-var classified = sentinelComposite.clip(testgeo).classify(classifier);
+var classified = sentinelComposite.classify(classifier);
 print(classified);
-Map.addLayer(classified, {min:0,max:100,palette:['grey', 'red']}, 'rf'); 
+Map.addLayer(classified, {min:0,max:100,palette:['grey', 'green']}, 'rf'); 
 Map.addLayer(clippedKenyaMosaic, {min:0,max:100,palette:['grey', 'red']}, 'og')
 
 //print(classified)
