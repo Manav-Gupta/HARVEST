@@ -116,22 +116,10 @@ Export.table.toDrive({
 })*/
 //Map.addLayer(featureCollection, rgbVis, 'feature');
 //var region = ee.Geometry.Polygon([[[35.14991659097305,0.4997118710545379],[35.79261678628555,0.4997118710545379],[35.79261678628555,1.0489760074035885],[35.14991659097305,1.0489760074035885],[35.14991659097305,0.4997118710545379]]]);
-//Map.addLayer(region,{}, 'testq');
+Map.addLayer(test,{min:0,max:100,palette:['grey', 'red']}, 'og');
 //Map.addLayer(image2,{}, 'collectionKenya');
 //var sampleRegion = ee.Geometry.Point(35.0891, 0.6556);
 //Map.addLayer(sampleRegion,{},'sampleregion')
-function maskS2clouds(image) {
-  var qa = image.select('QA60');
-  var cloudBitMask = 1 << 10;
-  var cirrusBitMask = 1 << 11;
-  var mask = qa.bitwiseAnd(cloudBitMask).eq(0).and(
-             qa.bitwiseAnd(cirrusBitMask).eq(0));
-  return image.updateMask(mask)
-      .select('B.*')
-      .copyProperties(image, ['system:time_start']);
-}
-var maskedImage = ee.Image(maskS2clouds(filtered));
-Map.addLayer(maskedImage, rgbVis, 'poly1');
 /*
 Export.table.toAsset({
   collection: validationTrainSet,
