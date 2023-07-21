@@ -100,7 +100,7 @@ print(byYearMonth);
 //var validationTrainSet = byYearMonth.sample({region:geometry, scale:10, numPixels:5000, tileScale:12, geometries:true})
 
 // Define the number of samples you want to take per image.
-var numSamplesPerImage = 1500;
+var numSamplesPerImage = 2500;
 
 // Sample the data in the ImageCollection.
 var sampledData = byYearMonth.map(function(image) {
@@ -128,7 +128,7 @@ var sentinelComposite = filtered.median().clip(geometry);
 //Map.addLayer(sentinelComposite,rgbVis,'asds');
 
 
-var classifier = ee.Classifier.smileRandomForest(150).train({
+var classifier = ee.Classifier.smileRandomForest(300).train({
   features: sampledData,  
   classProperty: 'cropLabel', 
   inputProperties: sentinelComposite.bandNames()
