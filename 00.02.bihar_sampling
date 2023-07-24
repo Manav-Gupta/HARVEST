@@ -1,0 +1,206 @@
+/**** Start of imports. If edited, may not auto-convert in the playground. ****/
+var s2 = ee.ImageCollection("COPERNICUS/S2_SR_HARMONIZED"),
+    image = ee.Image("users/manavgupta/field_ids_100_120"),
+    image2 = ee.Image("users/manavgupta/field_ids_120_140"),
+    image3 = ee.Image("users/manavgupta/field_ids_140_160"),
+    image4 = ee.Image("users/manavgupta/field_ids_160_173"),
+    image5 = ee.Image("users/manavgupta/field_ids_1_20"),
+    image6 = ee.Image("users/manavgupta/field_ids_20_40"),
+    image7 = ee.Image("users/manavgupta/field_ids_40_60"),
+    image8 = ee.Image("users/manavgupta/field_ids_60_80"),
+    image9 = ee.Image("users/manavgupta/field_ids_80_1001"),
+    table = ee.FeatureCollection("projects/ee-manavgupta/assets/final_points"),
+    table2 = ee.FeatureCollection("projects/ee-manavgupta/assets/polygon1"),
+    table3 = ee.FeatureCollection("projects/ee-manavgupta/assets/polygon2"),
+    table4 = ee.FeatureCollection("projects/ee-manavgupta/assets/multiple_polygons"),
+    table5 = ee.FeatureCollection("projects/ee-manavgupta/assets/check_coords3"),
+    geometry = 
+    /* color: #98ff00 */
+    /* shown: false */
+    /* displayProperties: [
+      {
+        "type": "rectangle"
+      },
+      {
+        "type": "rectangle"
+      },
+      {
+        "type": "rectangle"
+      },
+      {
+        "type": "rectangle"
+      }
+    ] */
+    ee.Geometry.MultiPolygon(
+        [[[[81.06551542720422, 28.36907163403206],
+           [81.06551542720422, 26.771998245277103],
+           [82.77938261470422, 26.771998245277103],
+           [82.77938261470422, 28.36907163403206]]],
+         [[[86.77840605220422, 26.004362730996405],
+           [86.77840605220422, 25.012841951286152],
+           [88.18465605220422, 25.012841951286152],
+           [88.18465605220422, 26.004362730996405]]],
+         [[[76.03377714595422, 25.588922005734513],
+           [76.03377714595422, 24.313961156043984],
+           [77.59383573970422, 24.313961156043984],
+           [77.59383573970422, 25.588922005734513]]],
+         [[[82.69149198970422, 19.752208850922248],
+           [82.69149198970422, 18.798138470359564],
+           [84.20760527095422, 18.798138470359564],
+           [84.20760527095422, 19.752208850922248]]]], null, false);
+/***** End of imports. If edited, may not auto-convert in the playground. *****/
+
+var collectionRasterLabel = ee.ImageCollection(
+  [image, image2, image3, image4, image5, image6, image7, image8, image9]);
+
+//var collectionFieldId = ee.ImageCollection(
+//  [image10, image11, image12, image13, image14, image15, image16, image17, image18, image19, image20, image21, image22]);
+
+// Define the FAO GAUL state code and country code
+var stateCode = '70073';
+var countryCode = '115';
+
+// Load the FAO GAUL feature collection
+var gaulFeatures = ee.FeatureCollection('FAO/GAUL/2015/level0');
+
+// Filter the features based on the state code and country code
+var filteredFeatures = gaulFeatures
+  .filter(ee.Filter.eq('ADM0_CODE', 115));
+  
+// Get the geometry of the filtered features
+var geometry = filteredFeatures.geometry();  
+
+//var fieldIdMosaic = collectionFieldId.mosaic();
+//var clippedFieldIdMosaic = fieldIdMosaic.clip(geometry);
+
+var rasterLabelMosaic = collectionRasterLabel.mosaic();
+var clippedRasterLabelMosaic = rasterLabelMosaic.clip(geometry);
+
+//Map.addLayer(clippedRasterLabelMosaic, {}, 'Mosaic Image');
+var rgbVis = {
+  min: 0.0,
+  max: 3000,
+  bands: ['B4', 'B3', 'B2'],
+};
+
+
+
+var filtered = s2.filter(ee.Filter.lt('CLOUDY_PIXEL_PERCENTAGE', 10))
+  .filter(ee.Filter.date('2022-01-01', '2022-05-31'))
+  .filter(ee.Filter.bounds(geometry));
+
+var sentinelMosaic = filtered.mosaic();
+var sentinelComposite = filtered.median().clip(geometry);
+
+Map.addLayer(sentinelComposite, rgbVis, 'Sentinel Median Composite');
+//Map.addLayer(sentinelMosaic, rgbVis, 'Sentinel Mosaic');
+// Clip the mosaic image to the specified geometry
+//var clippedMosaic = mosaic.clip(geometry);
+
+// Display the clipped mosaic on the map
+//Map.addLayer(clippedFieldIdMosaic, {}, 'Field Id Mosaic');
+//Map.addLayer(clippedRasterLabelMosaic, {}, 'Raster Label Mosaic');
+// Create a mask for non-field pixels
+//var nonFieldMask = clippedMosaic.eq(0);
+
+// Set non-field pixels to white (255)
+//var finalImage = clippedMosaic.where(nonFieldMask, 255);
+
+// Display the final image
+//Map.addLayer(finalImage, {}, 'Final Image');
+
+//var abc = ee.FeatureCollection(table);
+
+
+
+//Map.addLayer(abc.draw({color: 'ff0000', pointRadius: 1}), {}, 'abc');
+var poly1 = ee.FeatureCollection(table5);
+var centrods = table4.map(function(f){return f.centroid()})
+Map.addLayer(poly1, {}, 'poly1');
+
+
+var meanDictionary = sentinelComposite.reduceRegions({
+  collection : poly1,
+  reducer: ee.Reducer.median(),
+  //geometry: poly1.geometry(),
+  scale: 30,
+  tileScale : 12
+});
+
+//print(meanDictionary);
+
+var region = ee.Geometry.Polygon([[[81.6926, 27.533693], [81.692904, 27.533692], [81.692902, 27.533421], [81.692801, 27.533421], [81.692799, 27.533241], [81.692698, 27.533241], [81.692698, 27.533151], [81.6929, 27.53315], [81.6929, 27.53306], [81.693102, 27.533059], [81.693102, 27.532968], [81.693203, 27.532968], [81.6932, 27.532517], [81.693099, 27.532517], [81.693098, 27.532427], [81.692794, 27.532428], [81.692795, 27.532519], [81.692592, 27.53252], [81.692593, 27.53261], [81.692492, 27.53261], [81.692494, 27.532971], [81.692393, 27.532972], [81.692395, 27.533333], [81.692496, 27.533333], [81.692497, 27.533513], [81.692599, 27.533513], [81.6926, 27.533693]]]);
+//Map.addLayer(region,{min: 1000, max: 2000}, 'SRTM14');
+
+//var cropLabelImage = clippedFieldIdMosaic.first(0);
+var fieldIDImage = clippedRasterLabelMosaic.first(0);
+
+//var cropLabel = cropLabelImage.select('b1').toInt().rename('CropLabel');
+var fieldID = fieldIDImage.select('b1').toInt().rename('FieldID');
+
+var clippedImage = sentinelMosaic.clip(poly1);
+
+//var triplets = clippedImage.addBands(fieldID).addBands(cropLabel);
+//print(triplets);
+//var check = triplets.bandTypes();
+//print(check);
+//Map.addLayer(triplets,{},'triplets');
+//Map.addLayer(clippedImage, {bands: ['B4', 'B3', 'B2'], min: 0, max: 3000}, 'Sentinel Mosaic');
+//var combinedLayer = clippedImage.addBands(triplets);
+//Map.addLayer(triplets, {bands: ['B4', 'B3', 'B2'], min: 0, max: 3000}, 'Combined Layer');
+
+// Define a region of interest for sampling
+var sampleRegion = ee.Geometry.Point(87.88339501882432, 25.75889280797354);  // Specify the coordinates of the sample point
+//Map.addLayer(sampleRegion,{},'point');
+// Sample the values of field ID and crop label at the sample point
+//var sample = combinedLayer.sampleRegions({
+//  collection: sampleRegion,
+//  scale: 10,
+//  geometries: true
+//});
+
+// Get the first feature from the sample
+//var firstFeature = sample.first();
+
+// Get the field ID and crop label values from the feature
+//var fieldIDValue = firstFeature.get('FieldID');
+//var cropLabelValue = firstFeature.get('CropLabel');
+
+// Print the field ID and crop label values
+//print('Field ID:', fieldIDValue);
+//print('Crop Label:', cropLabelValue);
+
+/*var featureCollection = triplets.reduceToVectors({
+  reducer: ee.Reducer.mean(),
+  geometry: poly1,
+  scale: 10,
+});*/
+//var validationTrainSet = triplets.sampleRegions({collection:centrods, scale:10, tileScale:12, geometries:true})
+//var validationTrainSet = triplets.sample({region:centrods, scale:10, numPixels:10000, tileScale:12, geometries:true})
+//print(validationTrainSet)
+/*
+var featureCollectionWithCoords = validationTrainSet.map(function(feature) {
+  // Get the centroid of the feature with a small error margin
+  var centroid = feature.geometry().centroid(1); // Use an error margin of 1 meter
+  
+  // Get the coordinates of the centroid
+  var coords = centroid.coordinates();
+  
+  // Add latitude and longitude properties to the feature
+  var featureWithCoords = feature.set('latitude', coords.get(1)).set('longitude', coords.get(0));
+  
+  return featureWithCoords;
+});*/
+//Map.addLayer(featureCollection, {bands: ['B4', 'B3', 'B2'], min: 0, max: 3000}, 'features');
+/*Export.table.toAsset({
+  collection: featureCollectionWithCoords,
+  description: 'bihar',
+  assetId: 'projects/ee-manavgupta/assets/bihar',
+});*/
+
+Export.table.toDrive({
+  collection: meanDictionary,
+  description: 'testing up',
+  folder: 'India dataset',
+  fileFormat: 'CSV',  // or 'GeoJSON', 'KML', 'TFRecord', etc.
+});
